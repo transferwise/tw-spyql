@@ -1,0 +1,29 @@
+plugins {
+	id 'java'
+	id 'groovy'
+	id 'idea'
+	id 'maven-publish'
+}
+
+group 'com.transferwise'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+	springVersion = "4.3.14.RELEASE"
+}
+
+dependencies {
+	compile "org.springframework:spring-jdbc:$springVersion"
+	compile "org.springframework:spring-tx:$springVersion"
+
+	testCompile 'junit:junit:4.12'
+	testCompile 'com.h2database:h2:1.4.196'
+	testCompile "org.springframework:spring-context:$springVersion"
+	testCompile "org.springframework:spring-test:$springVersion"
+
+}

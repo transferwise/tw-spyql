@@ -7,4 +7,8 @@
  * in the user guide at https://docs.gradle.org/4.6/userguide/multi_project_builds.html
  */
 
-rootProject.name = 'spyql'
+rootProject.name = 'com.transferwise.spyql'
+
+include 'spyql-core'
+include 'spyql-simple-logger'
+
