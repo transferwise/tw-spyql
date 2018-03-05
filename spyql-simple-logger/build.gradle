@@ -1,6 +1,5 @@
 plugins {
 	id 'java'
-	id 'groovy'
 	id 'idea'
 	id 'maven-publish'
 }
@@ -11,9 +10,5 @@ sourceCompatibility = 1.8
 
 dependencies {
 	compile project(':spyql-core')
-
 	compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
-
-	testCompile 'org.codehaus.groovy:groovy-all:2.4.13'
-	testCompile "org.spockframework:spock-core:1.1-groovy-2.4"
 }

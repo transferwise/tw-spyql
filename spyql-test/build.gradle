@@ -1,0 +1,40 @@
+buildscript {
+	ext {
+		springBootVersion = '1.5.10.RELEASE'
+	}
+	repositories {
+		jcenter()
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+apply plugin: 'java'
+apply plugin: 'groovy'
+apply plugin: 'idea'
+apply plugin: 'maven'
+apply plugin: 'org.springframework.boot'
+
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+	compile project(':spyql-core')
+	compile project(':spyql-simple-logger')
+
+	compileOnly 'org.projectlombok:lombok:1.16.20'
+
+	compile 'org.springframework.boot:spring-boot-starter'
+	compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+	compile 'com.h2database:h2:1.4.196'
+	compile "org.hibernate:hibernate-java8:5.2.14.Final"
+
+	testCompile 'org.springframework.boot:spring-boot-starter-test'
+	testCompile 'org.spockframework:spock-spring'
+	testCompile 'org.codehaus.groovy:groovy:2.4.13'
+}

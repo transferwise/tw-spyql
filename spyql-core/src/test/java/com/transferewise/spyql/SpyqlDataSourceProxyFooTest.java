@@ -12,15 +12,19 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.sql.DataSource;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.CoreMatchers.notNullValue;
 import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {TestConfig.class})
-public class SpyqlDataSourceProxyTest {
+public class SpyqlDataSourceProxyFooTest {
 
 	@Autowired
 	DataSource dataSource;
@@ -29,7 +33,12 @@ public class SpyqlDataSourceProxyTest {
 	public void createDataSourceProxy() throws SQLException {
 		SpyqlListener listener = new TestListener();
 		DataSource proxy = new SpyqlDataSourceProxy(dataSource, listener);
-		assertThat(proxy.getConnection(), is(notNullValue()));
+		Connection connection = proxy.getConnection();
+		assertThat(connection, is(notNullValue()));
+		PreparedStatement preparedStatement = connection.prepareStatement("SELECT 1");
+		ResultSet result = preparedStatement.executeQuery();
+		result.first();
+		assertThat(result.getInt(1), is(equalTo(1)));
 	}
 
 	static class TestListener implements SpyqlListener {

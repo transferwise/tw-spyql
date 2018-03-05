@@ -25,5 +25,7 @@ dependencies {
 	testCompile 'com.h2database:h2:1.4.196'
 	testCompile "org.springframework:spring-context:$springVersion"
 	testCompile "org.springframework:spring-test:$springVersion"
-
+	testCompile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.25'
+	testCompile group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+	testCompile group: 'org.spockframework', name: 'spock-core', version: '1.1-groovy-2.4'
 }

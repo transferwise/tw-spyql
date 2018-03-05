@@ -20,10 +20,24 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 		this.spyqlListener = spyqlListener;
 	}
 
+	public SpyqlDataSourceProxy(SpyqlListener spyqlListener) {
+		super();
+		this.spyqlListener = spyqlListener;
+	}
+
+	public SpyqlDataSourceProxy(DataSource targetDataSource) {
+		super(targetDataSource);
+	}
+
+	public SpyqlDataSourceProxy() {
+		super();
+	}
+
 	public void setListener(SpyqlListener listener) {
 		spyqlListener = listener;
 	}
 
+	// TODO: Think about the case when listener removed from a different thread when getConnection is called at the same time.
 	public void removeListener() {
 		spyqlListener = null;
 	}
@@ -31,13 +45,13 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 	@Override
 	public Connection getConnection() throws SQLException {
 		Connection target = super.getConnection();
-		return createConnectionProxy(target);
+		return spyqlListener == null ? target : createConnectionProxy(target);
 	}
 
 	@Override
 	public Connection getConnection(String username, String password) throws SQLException {
 		Connection target = super.getConnection(username, password);
-		return createConnectionProxy(target);
+		return spyqlListener == null ? target : createConnectionProxy(target);
 	}
 
 	private Connection createConnectionProxy(Connection target) {
@@ -56,8 +70,12 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 		private Connection target;
 		private boolean withinTransaction = false;
 		private SpyqlTransactionListener transactionListener;
+		private long transactionStartTime;
 
 		ConnectionInvocationHandler(Connection target) {
+			if (target == null) {
+				throw new IllegalArgumentException("target connection cannot be null");
+			}
 			this.target = target;
 		}
 
@@ -86,15 +104,21 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 					case "commit":
 						method.invoke(target, args);
 						if (transactionListener != null) {
-							transactionListener.onTransactionCommit();
-							transactionListener.onTransactionComplete();
+							long transactionExecutionTimeNs = System.nanoTime() - transactionStartTime;
+							try {
+								transactionListener.onTransactionCommit();
+								transactionListener.onTransactionComplete(transactionExecutionTimeNs);
+							} catch (Exception ignore) {}
 						}
 						return null;
 					case "rollback":
 						method.invoke(target, args);
 						if (transactionListener != null) {
-							transactionListener.onTransactionRollback();
-							transactionListener.onTransactionComplete();
+							long transactionExecutionTimeNs = System.nanoTime() - transactionStartTime;
+							try {
+								transactionListener.onTransactionRollback();
+								transactionListener.onTransactionComplete(transactionExecutionTimeNs);
+							} catch (Exception ignore) {}
 						}
 						return null;
 				}
@@ -110,14 +134,20 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 		}
 
 		void onTransactionBegin(SpyqlTransactionDefinition transactionSpy) {
-			transactionListener = spyqlListener.onTransactionBegin(transactionSpy);
+			try {
+				transactionListener = spyqlListener.onTransactionBegin(transactionSpy);
+			} catch (Exception ignore) {}
 			withinTransaction = true;
+			transactionStartTime = System.nanoTime();
 		}
 
 		void onStatementExecuted(String sql, Long executionTimeNs) {
-			if (transactionListener != null) {
-				transactionListener.onStatementExecute(sql, executionTimeNs);
+			if (transactionListener == null) {
+				return;
 			}
+			try {
+				transactionListener.onStatementExecute(sql, executionTimeNs);
+			} catch (Exception ignore) {}
 		}
 
 		private Connection getTargetConnection(Method operation) {
@@ -132,6 +162,9 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 		private String sql;
 
 		StatementInvocationHandler(T target, ConnectionInvocationHandler connectionInvocationHandler, String sql) {
+			if (target == null) {
+				throw new IllegalArgumentException("target statement cannot be null");
+			}
 			this.target = target;
 			this.connectionInvocationHandler = connectionInvocationHandler;
 			this.sql = sql;
@@ -153,7 +186,9 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 					if (connectionInvocationHandler.isInTransaction()) {
 						connectionInvocationHandler.onStatementExecuted(sql, executionTimeNs);
 					} else {
-						spyqlListener.onStatementExecute(sql, executionTimeNs);
+						try {
+							spyqlListener.onStatementExecute(sql, executionTimeNs);
+						} catch (Exception ignored) {}
 					}
 					return result;
 				}

@@ -1,14 +1,23 @@
 package com.transferewise.spyql;
 
+import ch.qos.logback.classic.Level;
+import ch.qos.logback.classic.Logger;
 import org.h2.jdbcx.JdbcDataSource;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
 @Configuration
 class TestConfig {
+
+	@PostConstruct
+	void init() {
+		Logger root = (Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+		root.setLevel(Level.DEBUG);
+	}
 
 	@Bean
 	DataSource dataSource() {

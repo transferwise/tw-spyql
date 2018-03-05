@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SpyqlLoggingListener implements SpyqlListener {
-	private static final Logger log = LoggerFactory.getLogger(SpyqlTransactionListener.class);
+	private static final Logger log = LoggerFactory.getLogger(SpyqlLoggingListener.class);
 	private static AtomicLong transactionId = new AtomicLong(0L);
 
 	@Override
@@ -30,12 +30,10 @@ public class SpyqlLoggingListener implements SpyqlListener {
 	static class TransactionListener implements SpyqlTransactionListener {
 		SpyqlTransactionDefinition transactionDefinition;
 		Long id;
-		Long startTime;
 
 		TransactionListener(SpyqlTransactionDefinition transactionDefinition, Long id) {
 			this.transactionDefinition = transactionDefinition;
 			this.id = id;
-			this.startTime = System.nanoTime();
 		}
 
 		@Override
@@ -49,14 +47,18 @@ public class SpyqlLoggingListener implements SpyqlListener {
 		}
 
 		@Override
-		public void onTransactionComplete() {
-			long currentTime = System.nanoTime();
-			log.info("TRANSACTION COMPLETE id: {}, name: {}, after: {} ns", id, transactionDefinition.getName(), currentTime - startTime);
+		public void onTransactionComplete(Long transactionExecutionTimeNs) {
+			log.info("TRANSACTION COMPLETE id: {}, name: {}, after: {} ns", id, transactionDefinition.getName(), transactionExecutionTimeNs);
 		}
 
 		@Override
 		public void onStatementExecute(String sql, Long executionTimeNs) {
 			log.info("EXECUTE IN TRANSACTION id: {}, sql: {}, after: {} ns", id, sql, executionTimeNs);
+		}
+
+		@Override
+		public void onStatementFailure(String sql, Long executionTimeNs, Throwable e) {
+			log.info("Exception was thrown: {} after: {} ns", e, executionTimeNs);
 		}
 	}
 }
