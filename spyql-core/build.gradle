@@ -48,6 +48,15 @@ artifacts {
 publish.dependsOn assemble
 publishToMavenLocal.dependsOn assemble
 
+jar {
+	manifest {
+		attributes('Implementation-Version': project.version)
+	}
+//	from {
+//		configurations.includeInJar.collect { it.isDirectory() ? it : zipTree(it) }
+//	}
+}
+
 publishing {
 	publications {
 		mavenJava(MavenPublication) {
