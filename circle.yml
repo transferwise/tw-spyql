@@ -16,6 +16,12 @@ test:
     - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
 
 deployment:
+  release:
+    tag: /v[0-9]+(\.[0-9]+)*/
+    commands:
+      - ./gradlew spyql-core:publish --console=plain
+      - mkdir $CIRCLE_ARTIFACTS/build
+      - mv spyql-core/build/libs/*.jar $CIRCLE_ARTIFACTS/build
   all:
     branch: /.*?/
     commands:
