@@ -1,4 +1,4 @@
-package com.transferewise.spyql;
+package com.transferwise.spyql;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;

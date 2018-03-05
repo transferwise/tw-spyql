@@ -1,0 +1,24 @@
+machine:
+  java:
+    version: oraclejdk8
+  services:
+      - docker
+
+dependencies:
+  override:
+    - ./gradlew compileTestJava
+
+test:
+  override:
+    - ./gradlew test
+  post:
+    - mkdir -p $CIRCLE_TEST_REPORTS/junit/
+    - find . -type f -regex ".*/build/test-results/.*xml" -exec cp {} $CIRCLE_TEST_REPORTS/junit/ \;
+
+deployment:
+  all:
+    branch: /.*?/
+    commands:
+      - ./gradlew spyql-core:publish
+      - mkdir $CIRCLE_ARTIFACTS/build
+      - mv spyql-core/build/libs/*.jar $CIRCLE_ARTIFACTS/build
