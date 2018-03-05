@@ -1,7 +1,9 @@
 package com.transferwise.spyql
 
+import spock.lang.Ignore
 import spock.lang.Specification
 
+@Ignore
 class StatementInvocationHandlerTest extends Specification {
 	def "executeQuery(String sql)"() {
 		expect:

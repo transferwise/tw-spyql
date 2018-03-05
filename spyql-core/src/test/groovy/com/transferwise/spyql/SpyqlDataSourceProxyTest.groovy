@@ -1,5 +1,6 @@
 package com.transferwise.spyql
 
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import javax.sql.DataSource
@@ -682,50 +683,54 @@ class SpyqlDataSourceProxyTest extends Specification {
 		0 * _
 	}
 
+	@Ignore
 	def "when execute throws onStatementFailure is called"() {
-		// TODO
-//		given:
-//		def dataSourceMock = Mock(DataSource)
-//		def listener = Mock(SpyqlListener)
-//		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
-//		def originalConnection = Mock(Connection)
-//		def originalStatement = Mock(PreparedStatement)
-//		def transactionListener = Mock(SpyqlTransactionListener)
-//
-//		when:
-//		def connection = proxy.getConnection()
-//		then:
-//		1 * dataSourceMock.getConnection() >> originalConnection
-//
-//		when:"the first statement is prepared"
-//		def statement = connection.prepareStatement("SELECT 1")
-//		then:"original prepareStatement is called"
-//		1 * originalConnection.prepareStatement("SELECT 1") >> originalStatement
-//
-//		when:"the statement is executed"
-//		statement.execute()
-//		then:"checks if transaction is required"
-//		1 * originalStatement.getConnection() >> originalConnection
-//		1 * originalConnection.getAutoCommit() >> false
-//		and:"transaction is started"
-//		1 * listener.onTransactionBegin(_) >> transactionListener
-//		and:"original execute is called"
-//		1 * originalStatement.execute() >> {
-//			throw new SQLException("Foo Bar")
-//		}
-//		and:
-//		1 * transactionListener.onStatementFailure({e -> e instanceof SQLException && e.message == "Foo Bar"}, {it > 0})
-//		and:
-//		def e = thrown(SQLException)
-//		e.message == "Foo Bar"
+		given:
+		def dataSourceMock = Mock(DataSource)
+		def listener = Mock(SpyqlListener)
+		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
+		def originalConnection = Mock(Connection)
+		def originalStatement = Mock(PreparedStatement)
+		def transactionListener = Mock(SpyqlTransactionListener)
+
+		when:
+		def connection = proxy.getConnection()
+		then:
+		1 * dataSourceMock.getConnection() >> originalConnection
+
+		when:"the first statement is prepared"
+		def statement = connection.prepareStatement("SELECT 1")
+		then:"original prepareStatement is called"
+		1 * originalConnection.prepareStatement("SELECT 1") >> originalStatement
+
+		when:"the statement is executed"
+		statement.execute()
+		then:"checks if transaction is required"
+		1 * originalStatement.getConnection() >> originalConnection
+		1 * originalConnection.getAutoCommit() >> false
+		and:"transaction is started"
+		1 * listener.onTransactionBegin(_) >> transactionListener
+		and:"original execute is called"
+		1 * originalStatement.execute() >> {
+			throw new SQLException("Foo Bar")
+		}
+		and:
+		1 * transactionListener.onStatementFailure({e -> e instanceof SQLException && e.message == "Foo Bar"}, {it > 0})
+		and:
+		def e = thrown(SQLException)
+		e.message == "Foo Bar"
 	}
 
+	@Ignore
 	def "when commit throws onTransactionCommitFailure is called"() {
-		// TODO
+		expect:
+		false
 	}
 
+	@Ignore
 	def "when rollback throws onTransactionRollbackFailure is called"() {
-		// TODO
+		expect:
+		false
 	}
 
 	private static boolean hasInvocationHandler(Object connection, Class<?> clazz) {

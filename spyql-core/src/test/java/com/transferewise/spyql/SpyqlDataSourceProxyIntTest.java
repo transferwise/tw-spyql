@@ -24,7 +24,7 @@ import static org.hamcrest.MatcherAssert.assertThat;
 
 @RunWith(SpringRunner.class)
 @ContextConfiguration(classes = {TestConfig.class})
-public class SpyqlDataSourceProxyFooTest {
+public class SpyqlDataSourceProxyIntTest {
 
 	@Autowired
 	DataSource dataSource;
