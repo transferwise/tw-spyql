@@ -19,6 +19,6 @@ deployment:
   all:
     branch: /.*?/
     commands:
-      - ./gradlew spyql-core:publish
+      - ./gradlew spyql-core:publish --scan --stacktrace
       - mkdir $CIRCLE_ARTIFACTS/build
       - mv spyql-core/build/libs/*.jar $CIRCLE_ARTIFACTS/build
