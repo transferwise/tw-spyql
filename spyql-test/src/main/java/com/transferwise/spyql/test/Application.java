@@ -31,6 +31,8 @@ public class Application implements CommandLineRunner {
 		logFooSize();
 		fooService.addOneWithNestedTwo();
 		logFooSize();
+
+		Thread.sleep(1000);
 	}
 
 	private void logFooSize() {

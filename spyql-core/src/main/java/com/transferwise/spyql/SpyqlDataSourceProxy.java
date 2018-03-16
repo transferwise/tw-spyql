@@ -80,6 +80,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 		}
 
 		@Override
+		@SuppressWarnings("deprecation")
 		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 			try {
 				switch (method.getName()) {
@@ -106,6 +107,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 						if (transactionListener != null) {
 							long transactionExecutionTimeNs = System.nanoTime() - transactionStartTime;
 							try {
+								transactionListener.onTransactionCommit(transactionExecutionTimeNs);
 								transactionListener.onTransactionCommit();
 								transactionListener.onTransactionComplete(transactionExecutionTimeNs);
 							} catch (Exception ignore) {}
@@ -116,6 +118,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 						if (transactionListener != null) {
 							long transactionExecutionTimeNs = System.nanoTime() - transactionStartTime;
 							try {
+								transactionListener.onTransactionRollback(transactionExecutionTimeNs);
 								transactionListener.onTransactionRollback();
 								transactionListener.onTransactionComplete(transactionExecutionTimeNs);
 							} catch (Exception ignore) {}

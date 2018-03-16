@@ -10,7 +10,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class SpyqlLoggingListener implements SpyqlListener {
 	private static final Logger log = LoggerFactory.getLogger(SpyqlLoggingListener.class);
-	private static AtomicLong transactionId = new AtomicLong(0L);
+
+	private AtomicLong transactionId = new AtomicLong(0L);
 
 	@Override
 	public SpyqlTransactionListener onTransactionBegin(SpyqlTransactionDefinition transactionDefinition) {

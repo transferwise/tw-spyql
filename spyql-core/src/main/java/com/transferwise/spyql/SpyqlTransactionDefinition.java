@@ -5,7 +5,7 @@ public class SpyqlTransactionDefinition {
 	private Boolean readOnly;
 	private Integer isolationLevel;
 
-	SpyqlTransactionDefinition(String name, Boolean readOnly, Integer isolationLevel) {
+	public SpyqlTransactionDefinition(String name, Boolean readOnly, Integer isolationLevel) {
 		this.name = name;
 		this.readOnly = readOnly;
 		this.isolationLevel = isolationLevel;
