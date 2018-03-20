@@ -8,7 +8,7 @@ public class TransactionRollbackEvent extends TransactionCompleteEvent {
 	@Override
 	public String toString() {
 		return "TransactionRollbackEvent{" +
-				"id=" + getId() +
+				"transactionId=" + getTransactionId() +
 				", executionTimeNs=" + getExecutionTimeNs() +
 				'}';
 	}

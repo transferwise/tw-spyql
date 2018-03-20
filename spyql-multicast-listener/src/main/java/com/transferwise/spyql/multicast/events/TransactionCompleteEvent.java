@@ -1,11 +1,11 @@
 package com.transferwise.spyql.multicast.events;
 
-public abstract class TransactionCompleteEvent implements Event {
-	private long id;
+public abstract class TransactionCompleteEvent implements TransactionEvent {
+	private long transactionId;
 	private Long executionTimeNs;
 
 	public TransactionCompleteEvent(long id, Long executionTimeNs) {
-		this.id = id;
+		this.transactionId = id;
 		this.executionTimeNs = executionTimeNs;
 	}
 
@@ -13,7 +13,8 @@ public abstract class TransactionCompleteEvent implements Event {
 		return executionTimeNs;
 	}
 
-	public long getId() {
-		return id;
+	@Override
+	public long getTransactionId() {
+		return transactionId;
 	}
 }

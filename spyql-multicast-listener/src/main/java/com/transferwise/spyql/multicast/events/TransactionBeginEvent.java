@@ -2,28 +2,25 @@ package com.transferwise.spyql.multicast.events;
 
 import com.transferwise.spyql.SpyqlTransactionDefinition;
 
-public class TransactionBeginEvent implements Event {
-	private long id;
+public class TransactionBeginEvent implements TransactionEvent {
+	private long transactionId;
 	private String name;
 	private Boolean readOnly;
 	private Integer isolationLevel;
 
-	public TransactionBeginEvent(long id, String name, Boolean readOnly, Integer isolationLevel) {
-		this.id = id;
+	public TransactionBeginEvent(long transactionId, String name, Boolean readOnly, Integer isolationLevel) {
+		this.transactionId = transactionId;
 		this.name = name;
 		this.readOnly = readOnly;
 		this.isolationLevel = isolationLevel;
 	}
 
-	public TransactionBeginEvent(long id, SpyqlTransactionDefinition transaction) {
-		this.id = id;
-		this.name = transaction.getName();
-		this.readOnly = transaction.getReadOnly();
-		this.isolationLevel = transaction.getIsolationLevel();
+	public TransactionBeginEvent(long transactionId, SpyqlTransactionDefinition transaction) {
+		this(transactionId, transaction.getName(), transaction.getReadOnly(), transaction.getIsolationLevel());
 	}
 
-	public long getId() {
-		return id;
+	public long getTransactionId() {
+		return transactionId;
 	}
 
 	public String getName() {
@@ -44,7 +41,7 @@ public class TransactionBeginEvent implements Event {
 	@Override
 	public String toString() {
 		return "TransactionBeginEvent{" +
-				"id=" + id +
+				"transactionId=" + transactionId +
 				", name='" + name + '\'' +
 				", readOnly=" + readOnly +
 				", isolationLevel=" + isolationLevel +

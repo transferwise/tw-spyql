@@ -1,6 +1,6 @@
 package com.transferwise.spyql.multicast.events;
 
-public class TransactionalStatementExecuteEvent extends StatementExecuteEvent {
+public class TransactionalStatementExecuteEvent extends StatementExecuteEvent implements TransactionEvent {
 	private long transactionId;
 
 	public TransactionalStatementExecuteEvent(String sql, Long executionTimeNs, long transactionId) {
@@ -8,6 +8,7 @@ public class TransactionalStatementExecuteEvent extends StatementExecuteEvent {
 		this.transactionId = transactionId;
 	}
 
+	@Override
 	public long getTransactionId() {
 		return transactionId;
 	}

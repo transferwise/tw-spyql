@@ -8,7 +8,7 @@ public class TransactionCommitEvent extends TransactionCompleteEvent {
 	@Override
 	public String toString() {
 		return "TransactionCommitEvent{" +
-				"id=" + getId() +
+				"transactionId=" + getTransactionId() +
 				", executionTimeNs=" + getExecutionTimeNs() +
 				'}';
 	}

@@ -4,17 +4,34 @@ import com.transferwise.spyql.SpyqlListener;
 import com.transferwise.spyql.SpyqlTransactionDefinition;
 import com.transferwise.spyql.SpyqlTransactionListener;
 import com.transferwise.spyql.multicast.events.*;
+import io.reactivex.Observable;
 import io.reactivex.Observer;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
+import io.reactivex.subjects.Subject;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public class AsyncMulticastListener implements SpyqlListener {
-	private PublishSubject<Event> subject = PublishSubject.create();
+public class MulticastListener extends Observable<Event> implements SpyqlListener {
+	private static final int TRANSACTION_LISTENER_MAP_MAX_SIZE_DEFAULT = 5000;
+
+	private Subject<Event> subject;
 	private AtomicLong transactionId = new AtomicLong(1L);
+	private int transactionListenerMapMaxSize;
+
+	public MulticastListener() {
+		this(TRANSACTION_LISTENER_MAP_MAX_SIZE_DEFAULT);
+	}
+
+	public MulticastListener(int transactionListenerMapMaxSize) {
+		this.transactionListenerMapMaxSize = transactionListenerMapMaxSize;
+		subject = PublishSubject.create();
+	}
+
+	public MulticastListener(int transactionListenerMapMaxSize, Subject<Event> subject) {
+		this.subject = subject;
+		this.transactionListenerMapMaxSize = transactionListenerMapMaxSize;
+	}
 
 	@Override
 	public SpyqlTransactionListener onTransactionBegin(SpyqlTransactionDefinition transaction) {
@@ -29,32 +46,18 @@ public class AsyncMulticastListener implements SpyqlListener {
 		subject.onNext(event);
 	}
 
-	public Disposable subscribeAsync(Consumer<? super Event> onNext) {
-		return subject
-				.observeOn(Schedulers.newThread())
-				.subscribe(onNext);
-	}
-
-	public void subscribeAsync(Observer<? super Event> onNext) {
-		subject
-				.observeOn(Schedulers.newThread())
-				.subscribe(onNext);
-	}
-
-	public Disposable subscribe(Consumer<? super Event> onNext) {
-		return subject.subscribe(onNext);
-	}
-
-	public void subscribe(Observer<? super Event> onNext) {
-		subject.subscribe(onNext);
-	}
-
-	public void attachListenerAsync(SpyqlListener listener) {
-		subscribeAsync(new ObserverListener(listener));
+	@Override
+	protected void subscribeActual(Observer<? super Event> observer) {
+		subject.subscribe(observer);
 	}
 
 	public void attachListener(SpyqlListener listener) {
-		subscribe(new ObserverListener(listener));
+		subscribe(new ObserverToListenerAdapter(listener, transactionListenerMapMaxSize));
+	}
+
+	public void attachAsyncListener(SpyqlListener listener) {
+		this.observeOn(Schedulers.newThread())
+				.subscribe(new ObserverToListenerAdapter(listener, transactionListenerMapMaxSize));
 	}
 
 	class TransactionListener implements SpyqlTransactionListener {
