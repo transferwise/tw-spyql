@@ -1,2 +1,2 @@
 # com.transferwise.spyql
-Professional spy for your data source
+A professional spy for your JDBC data source
