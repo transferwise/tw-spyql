@@ -1,4 +1,4 @@
-package com.transferwise.spyql.multicast.events;
+package com.transferwise.spyql.rx.events;
 
 public class TransactionalStatementExecuteEvent extends StatementExecuteEvent implements TransactionEvent {
 	private long transactionId;

@@ -4,8 +4,6 @@ plugins {
 	id 'maven-publish'
 }
 
-group 'com.transferwise'
-
 sourceCompatibility = 1.8
 
 dependencies {

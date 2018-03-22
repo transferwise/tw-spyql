@@ -1,4 +1,4 @@
-package com.transferwise.spyql.multicast
+package com.transferwise.spyql.rx
 
 import com.transferwise.spyql.SpyqlDataSourceProxy
 import com.transferwise.spyql.SpyqlListener
@@ -9,13 +9,13 @@ import javax.sql.DataSource
 import java.sql.Connection
 import java.sql.PreparedStatement
 
-class MulticastListenerIntTest extends Specification {
+class ObservableListenerIntTest extends Specification {
 
 	def "when outside transaction commit does nothing"() {
 		given:
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)
@@ -37,7 +37,7 @@ class MulticastListenerIntTest extends Specification {
 		given:
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)
@@ -59,7 +59,7 @@ class MulticastListenerIntTest extends Specification {
 		given:
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)
@@ -90,7 +90,7 @@ class MulticastListenerIntTest extends Specification {
 		given:
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)
@@ -121,7 +121,7 @@ class MulticastListenerIntTest extends Specification {
 		given:"a connection with autoCommit = false"
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)
@@ -182,7 +182,7 @@ class MulticastListenerIntTest extends Specification {
 		given:"a connection with autoCommit = false"
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)
@@ -235,7 +235,7 @@ class MulticastListenerIntTest extends Specification {
 		given:"a connection with autoCommit = false"
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)
@@ -280,7 +280,7 @@ class MulticastListenerIntTest extends Specification {
 		given:"a connection with autoCommit = false"
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)
@@ -325,7 +325,7 @@ class MulticastListenerIntTest extends Specification {
 		given:
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)
@@ -360,7 +360,7 @@ class MulticastListenerIntTest extends Specification {
 		given:
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)
@@ -395,7 +395,7 @@ class MulticastListenerIntTest extends Specification {
 		given:
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)
@@ -433,7 +433,7 @@ class MulticastListenerIntTest extends Specification {
 		given:
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)
@@ -478,7 +478,7 @@ class MulticastListenerIntTest extends Specification {
 		given:
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)
@@ -527,7 +527,7 @@ class MulticastListenerIntTest extends Specification {
 		given:
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)
@@ -572,7 +572,7 @@ class MulticastListenerIntTest extends Specification {
 		given:
 		def dataSourceMock = Mock(DataSource)
 		def originalListener = Mock(SpyqlListener)
-		def listener = new MulticastListener()
+		def listener = new ObservableListener()
 		listener.attachListener(originalListener)
 		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
 		def originalConnection = Mock(Connection)

@@ -1,9 +1,9 @@
-package com.transferwise.spyql.multicast;
+package com.transferwise.spyql.rx;
 
 import com.transferwise.spyql.SpyqlListener;
 import com.transferwise.spyql.SpyqlTransactionDefinition;
 import com.transferwise.spyql.SpyqlTransactionListener;
-import com.transferwise.spyql.multicast.events.*;
+import com.transferwise.spyql.rx.events.*;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.schedulers.Schedulers;
@@ -12,31 +12,31 @@ import io.reactivex.subjects.Subject;
 
 import java.util.concurrent.atomic.AtomicLong;
 
-public class MulticastListener extends Observable<Event> implements SpyqlListener {
+public class ObservableListener extends Observable<Event> implements SpyqlListener {
 	private static final int TRANSACTION_LISTENER_MAP_MAX_SIZE_DEFAULT = 5000;
 
 	private Subject<Event> subject;
 	private AtomicLong transactionId = new AtomicLong(1L);
 	private int transactionListenerMapMaxSize;
 
-	public MulticastListener() {
+	public ObservableListener() {
 		this(TRANSACTION_LISTENER_MAP_MAX_SIZE_DEFAULT);
 	}
 
-	public MulticastListener(int transactionListenerMapMaxSize) {
+	public ObservableListener(int transactionListenerMapMaxSize) {
 		this.transactionListenerMapMaxSize = transactionListenerMapMaxSize;
 		subject = PublishSubject.create();
 	}
 
-	public MulticastListener(int transactionListenerMapMaxSize, Subject<Event> subject) {
+	public ObservableListener(int transactionListenerMapMaxSize, Subject<Event> subject) {
 		this.subject = subject;
 		this.transactionListenerMapMaxSize = transactionListenerMapMaxSize;
 	}
 
 	@Override
-	public SpyqlTransactionListener onTransactionBegin(SpyqlTransactionDefinition transaction) {
+	public SpyqlTransactionListener onTransactionBegin(SpyqlTransactionDefinition transactionDefinition) {
 		long transactionId = this.transactionId.getAndIncrement();
-		subject.onNext(new TransactionBeginEvent(transactionId, transaction));
+		subject.onNext(new TransactionBeginEvent(transactionId, transactionDefinition));
 		return new TransactionListener(transactionId);
 	}
 
@@ -58,6 +58,10 @@ public class MulticastListener extends Observable<Event> implements SpyqlListene
 	public void attachAsyncListener(SpyqlListener listener) {
 		this.observeOn(Schedulers.newThread())
 				.subscribe(new ObserverToListenerAdapter(listener, transactionListenerMapMaxSize));
+	}
+
+	public void close() {
+		subject.onComplete();
 	}
 
 	class TransactionListener implements SpyqlTransactionListener {

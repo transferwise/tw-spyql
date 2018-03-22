@@ -2,6 +2,7 @@ package com.transferwise.spyql.test;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -14,7 +15,7 @@ public class FooService {
 		this.fooRepository = fooRepository;
 	}
 
-	@Transactional
+	@Transactional(isolation = Isolation.READ_COMMITTED)
 	public void addTwoFoosTransactionally() {
 		fooRepository.save(new Foo("1"));
 		fooRepository.save(new Foo("2"));

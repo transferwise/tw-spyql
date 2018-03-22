@@ -1,20 +1,20 @@
-package com.transferwise.spyql.multicast
+package com.transferwise.spyql.rx
 
 import com.transferwise.spyql.SpyqlListener
 import com.transferwise.spyql.SpyqlTransactionDefinition
-import com.transferwise.spyql.multicast.events.StatementExecuteEvent
-import com.transferwise.spyql.multicast.events.TransactionBeginEvent
-import com.transferwise.spyql.multicast.events.TransactionCommitEvent
-import com.transferwise.spyql.multicast.events.TransactionRollbackEvent
-import com.transferwise.spyql.multicast.events.TransactionalStatementExecuteEvent
+import com.transferwise.spyql.rx.events.StatementExecuteEvent
+import com.transferwise.spyql.rx.events.TransactionBeginEvent
+import com.transferwise.spyql.rx.events.TransactionCommitEvent
+import com.transferwise.spyql.rx.events.TransactionRollbackEvent
+import com.transferwise.spyql.rx.events.TransactionalStatementExecuteEvent
 import io.reactivex.subjects.Subject
 import spock.lang.Specification
 
-class MulticastListenerTest extends Specification {
+class ObservableListenerTest extends Specification {
 	def "onTransactionBegin produces correct TransactionBeginEvent"() {
 		given:
 		def subject = Mock(Subject)
-		def listener = new MulticastListener(100, subject)
+		def listener = new ObservableListener(100, subject)
 
 		when:
 		listener.onTransactionBegin(new SpyqlTransactionDefinition("tx", true, 1))
@@ -30,7 +30,7 @@ class MulticastListenerTest extends Specification {
 	def "onTransactionBegin produces correct TransactionBeginEvent with autoincrement id"() {
 		given:
 		def subject = Mock(Subject)
-		def listener = new MulticastListener(100, subject)
+		def listener = new ObservableListener(100, subject)
 
 		when:
 		listener.onTransactionBegin(new SpyqlTransactionDefinition("tx", true, 1))
@@ -46,7 +46,7 @@ class MulticastListenerTest extends Specification {
 	def "onStatementExecute produces StatementExecuteEvent"() {
 		given:
 		def subject = Mock(Subject)
-		def listener = new MulticastListener(100, subject)
+		def listener = new ObservableListener(100, subject)
 
 		when:
 		listener.onStatementExecute("SELECT 1", 123L)
@@ -60,7 +60,7 @@ class MulticastListenerTest extends Specification {
 	def "TransactionListener.onTransactionCommit produces TransactionCommitEvent"() {
 		given:
 		def subject = Mock(Subject)
-		def listener = new MulticastListener(100, subject)
+		def listener = new ObservableListener(100, subject)
 		def txListener = listener.onTransactionBegin(new SpyqlTransactionDefinition("tx", true, 1))
 
 		when:
@@ -75,7 +75,7 @@ class MulticastListenerTest extends Specification {
 	def "TransactionListener.onTransactionRollback produces TransactionRollbackEvent"() {
 		given:
 		def subject = Mock(Subject)
-		def listener = new MulticastListener(100, subject)
+		def listener = new ObservableListener(100, subject)
 		def txListener = listener.onTransactionBegin(new SpyqlTransactionDefinition("tx", true, 1))
 
 		when:
@@ -90,7 +90,7 @@ class MulticastListenerTest extends Specification {
 	def "TransactionListener.onStatementExecute produces TransactionalStatementExecuteEvent"() {
 		given:
 		def subject = Mock(Subject)
-		def listener = new MulticastListener(100, subject)
+		def listener = new ObservableListener(100, subject)
 		def txListener = listener.onTransactionBegin(new SpyqlTransactionDefinition("tx", true, 1))
 
 		when:
@@ -106,7 +106,7 @@ class MulticastListenerTest extends Specification {
 	def "attachAsyncListener does not fail"() {
 		given:
 		def subject = Mock(Subject)
-		def listener = new MulticastListener(100, subject)
+		def listener = new ObservableListener(100, subject)
 
 		when:
 		listener.attachAsyncListener(Mock(SpyqlListener))
@@ -117,7 +117,7 @@ class MulticastListenerTest extends Specification {
 	def "attachListener does not fail"() {
 		given:
 		def subject = Mock(Subject)
-		def listener = new MulticastListener(100, subject)
+		def listener = new ObservableListener(100, subject)
 
 		when:
 		listener.attachListener(Mock(SpyqlListener))

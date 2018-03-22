@@ -12,5 +12,5 @@ rootProject.name = 'com.transferwise.spyql'
 include 'spyql-core'
 include 'spyql-simple-logger'
 include 'spyql-test'
-include 'spyql-multicast-listener'
+include 'spyql-rx'
 

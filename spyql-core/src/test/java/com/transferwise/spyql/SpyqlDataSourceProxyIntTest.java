@@ -37,7 +37,7 @@ public class SpyqlDataSourceProxyIntTest {
 	static class TestListener implements SpyqlListener {
 
 		@Override
-		public SpyqlTransactionListener onTransactionBegin(SpyqlTransactionDefinition transactionSpy) {
+		public SpyqlTransactionListener onTransactionBegin(SpyqlTransactionDefinition transactionDefinition) {
 			return null;
 		}
 

@@ -1,8 +1,8 @@
-package com.transferwise.spyql.multicast;
+package com.transferwise.spyql.rx;
 
 import com.transferwise.spyql.SpyqlListener;
 import com.transferwise.spyql.SpyqlTransactionListener;
-import com.transferwise.spyql.multicast.events.*;
+import com.transferwise.spyql.rx.events.*;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
 import org.slf4j.Logger;

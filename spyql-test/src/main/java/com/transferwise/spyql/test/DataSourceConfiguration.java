@@ -4,7 +4,7 @@ import com.transferwise.spyql.SpyqlDataSourceProxy;
 import com.transferwise.spyql.SpyqlException;
 import com.transferwise.spyql.SpyqlHelper;
 import com.transferwise.spyql.listerners.SpyqlLoggingListener;
-import com.transferwise.spyql.multicast.MulticastListener;
+import com.transferwise.spyql.rx.ObservableListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -33,10 +33,10 @@ public class DataSourceConfiguration implements BeanPostProcessor {
 	}
 
 	@Bean
-	public MulticastListener multicastListener(DataSource dataSource,
-											   @Qualifier("synchronousLoggingListener") SpyqlLoggingListener synchronousLoggingListener,
-											   @Qualifier("asynchronousLoggingListener") SpyqlLoggingListener asynchronousLoggingListener) throws SQLException, SpyqlException {
-		MulticastListener listener = new MulticastListener();
+	public ObservableListener rxListener(DataSource dataSource,
+										 @Qualifier("synchronousLoggingListener") SpyqlLoggingListener synchronousLoggingListener,
+										 @Qualifier("asynchronousLoggingListener") SpyqlLoggingListener asynchronousLoggingListener) throws SQLException, SpyqlException {
+		ObservableListener listener = new ObservableListener();
 		listener.attachListener(synchronousLoggingListener);
 		listener.attachAsyncListener(asynchronousLoggingListener);
 		SpyqlHelper.setDataSourceListener(dataSource, listener);

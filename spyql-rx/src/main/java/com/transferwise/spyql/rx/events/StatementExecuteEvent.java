@@ -1,4 +1,4 @@
-package com.transferwise.spyql.multicast.events;
+package com.transferwise.spyql.rx.events;
 
 public class StatementExecuteEvent implements Event {
 	private String sql;

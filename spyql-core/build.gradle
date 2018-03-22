@@ -5,13 +5,7 @@ plugins {
 	id 'maven-publish'
 }
 
-group 'com.transferwise'
-
 sourceCompatibility = 1.8
-
-repositories {
-    mavenCentral()
-}
 
 ext {
 	springVersion = "4.3.14.RELEASE"
@@ -30,57 +24,4 @@ dependencies {
 	testCompile group: 'org.spockframework', name: 'spock-core', version: '1.1-groovy-2.4'
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = 'sources'
-	from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-	classifier = 'javadoc'
-	from javadoc.destinationDir
-}
-
-artifacts {
-	archives sourcesJar
-	archives javadocJar
-}
-
-publish.dependsOn assemble
-publishToMavenLocal.dependsOn assemble
-
-jar {
-	manifest {
-		attributes('Implementation-Version': project.version)
-	}
-//	from {
-//		configurations.includeInJar.collect { it.isDirectory() ? it : zipTree(it) }
-//	}
-}
-
-publishing {
-	publications {
-		mavenJava(MavenPublication) {
-			from components.java
-			artifact sourcesJar {
-				classifier "sources"
-			}
-			artifact javadocJar {
-				classifier "javadoc"
-			}
-		}
-	}
-	repositories {
-		maven {
-			url artifactoryUrl(project, 'libs')
-			credentials {
-				username = project.hasProperty('artifactoryUser') ? artifactoryUser : System.getenv('ARTIFACTORY_USER')
-				password = project.hasProperty('artifactoryPassword') ? artifactoryPassword : System.getenv('ARTIFACTORY_PASSWORD')
-			}
-		}
-	}
-}
-
-static artifactoryUrl(prj, libraryType) {
-	def releaseType = prj.property('version').contains('SNAPSHOT') ? 'snapshot' : 'release'
-	"http://artifacts.transferwise.com/artifactory/${libraryType}-${releaseType}-local"
-}
+apply from: '../release.gradle'

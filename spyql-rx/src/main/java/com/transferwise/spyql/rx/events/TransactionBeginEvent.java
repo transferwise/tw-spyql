@@ -1,4 +1,4 @@
-package com.transferwise.spyql.multicast.events;
+package com.transferwise.spyql.rx.events;
 
 import com.transferwise.spyql.SpyqlTransactionDefinition;
 

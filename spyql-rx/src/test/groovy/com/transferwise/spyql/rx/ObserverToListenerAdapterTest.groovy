@@ -1,15 +1,14 @@
-package com.transferwise.spyql.multicast
+package com.transferwise.spyql.rx
 
 import com.transferwise.spyql.SpyqlListener
 import com.transferwise.spyql.SpyqlTransactionDefinition
 import com.transferwise.spyql.SpyqlTransactionListener
-import com.transferwise.spyql.multicast.events.StatementExecuteEvent
-import com.transferwise.spyql.multicast.events.TransactionBeginEvent
-import com.transferwise.spyql.multicast.events.TransactionCommitEvent
-import com.transferwise.spyql.multicast.events.TransactionRollbackEvent
-import com.transferwise.spyql.multicast.events.TransactionalStatementExecuteEvent
+import com.transferwise.spyql.rx.events.StatementExecuteEvent
+import com.transferwise.spyql.rx.events.TransactionBeginEvent
+import com.transferwise.spyql.rx.events.TransactionCommitEvent
+import com.transferwise.spyql.rx.events.TransactionRollbackEvent
+import com.transferwise.spyql.rx.events.TransactionalStatementExecuteEvent
 import io.reactivex.disposables.Disposable
-import org.slf4j.Logger
 import spock.lang.Specification
 
 class ObserverToListenerAdapterTest extends Specification {

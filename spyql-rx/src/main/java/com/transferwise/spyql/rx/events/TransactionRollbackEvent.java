@@ -1,4 +1,4 @@
-package com.transferwise.spyql.multicast.events;
+package com.transferwise.spyql.rx.events;
 
 public class TransactionRollbackEvent extends TransactionCompleteEvent {
 	public TransactionRollbackEvent(long id, Long executionTimeNs) {
