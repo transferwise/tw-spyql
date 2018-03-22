@@ -3,6 +3,7 @@ allprojects {
 		jcenter()
 		mavenCentral()
 	}
+	group 'com.transferwise'
 }
 
 task wrapper(type: Wrapper) {

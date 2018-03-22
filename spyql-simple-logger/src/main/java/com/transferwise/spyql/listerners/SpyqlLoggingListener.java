@@ -10,7 +10,8 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class SpyqlLoggingListener implements SpyqlListener {
 	private static final Logger log = LoggerFactory.getLogger(SpyqlLoggingListener.class);
-	private static AtomicLong transactionId = new AtomicLong(0L);
+
+	private AtomicLong transactionId = new AtomicLong(0L);
 
 	@Override
 	public SpyqlTransactionListener onTransactionBegin(SpyqlTransactionDefinition transactionDefinition) {
@@ -37,18 +38,13 @@ public class SpyqlLoggingListener implements SpyqlListener {
 		}
 
 		@Override
-		public void onTransactionCommit() {
-			log.info("TRANSACTION COMMIT id: {}, name: {}", id, transactionDefinition.getName());
+		public void onTransactionCommit(Long transactionExecutionTimeNs) {
+			log.info("TRANSACTION COMMIT id: {}, name: {}, after: {} ns", id, transactionDefinition.getName(), transactionExecutionTimeNs);
 		}
 
 		@Override
-		public void onTransactionRollback() {
-			log.info("TRANSACTION ROLLBACK id: {}, name: {}", id, transactionDefinition.getName());
-		}
-
-		@Override
-		public void onTransactionComplete(Long transactionExecutionTimeNs) {
-			log.info("TRANSACTION COMPLETE id: {}, name: {}, after: {} ns", id, transactionDefinition.getName(), transactionExecutionTimeNs);
+		public void onTransactionRollback(Long transactionExecutionTimeNs) {
+			log.info("TRANSACTION ROLLBACK id: {}, name: {}, after: {} ns", id, transactionDefinition.getName(), transactionExecutionTimeNs);
 		}
 
 		@Override

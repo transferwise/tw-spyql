@@ -80,6 +80,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 		}
 
 		@Override
+		@SuppressWarnings("deprecation")
 		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 			try {
 				switch (method.getName()) {
@@ -106,6 +107,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 						if (transactionListener != null) {
 							long transactionExecutionTimeNs = System.nanoTime() - transactionStartTime;
 							try {
+								transactionListener.onTransactionCommit(transactionExecutionTimeNs);
 								transactionListener.onTransactionCommit();
 								transactionListener.onTransactionComplete(transactionExecutionTimeNs);
 							} catch (Exception ignore) {}
@@ -116,6 +118,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 						if (transactionListener != null) {
 							long transactionExecutionTimeNs = System.nanoTime() - transactionStartTime;
 							try {
+								transactionListener.onTransactionRollback(transactionExecutionTimeNs);
 								transactionListener.onTransactionRollback();
 								transactionListener.onTransactionComplete(transactionExecutionTimeNs);
 							} catch (Exception ignore) {}
@@ -133,9 +136,9 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 			return withinTransaction;
 		}
 
-		void onTransactionBegin(SpyqlTransactionDefinition transactionSpy) {
+		void onTransactionBegin(SpyqlTransactionDefinition transactionDefinition) {
 			try {
-				transactionListener = spyqlListener.onTransactionBegin(transactionSpy);
+				transactionListener = spyqlListener.onTransactionBegin(transactionDefinition);
 			} catch (Exception ignore) {}
 			withinTransaction = true;
 			transactionStartTime = System.nanoTime();
@@ -175,7 +178,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 			try {
 				if (method.getName().startsWith("execute")) {
 					if (!connectionInvocationHandler.isInTransaction() && !target.getConnection().getAutoCommit()) {
-						connectionInvocationHandler.onTransactionBegin(createTransactionSpy());
+						connectionInvocationHandler.onTransactionBegin(createTransactionDefinition());
 					}
 
 					long startTime = System.nanoTime();
@@ -203,7 +206,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 			return isExecuteMethodWithSqlArgument(method, args) ? (String) args[0] : this.sql;
 		}
 
-		private SpyqlTransactionDefinition createTransactionSpy() {
+		private SpyqlTransactionDefinition createTransactionDefinition() {
 			return new SpyqlTransactionDefinition(
 					TransactionSynchronizationManager.getCurrentTransactionName(),
 					TransactionSynchronizationManager.isCurrentTransactionReadOnly(),
