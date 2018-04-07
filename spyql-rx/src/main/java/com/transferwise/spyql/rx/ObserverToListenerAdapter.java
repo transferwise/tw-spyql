@@ -38,7 +38,6 @@ class ObserverToListenerAdapter implements Observer<Event> {
 	}
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public void onNext(Event event) {
 		// RANT: This looks so ugly in Java
 		if (event instanceof TransactionalStatementExecuteEvent) {
@@ -67,8 +66,6 @@ class ObserverToListenerAdapter implements Observer<Event> {
 			if (transactionListener != null) {
 				transactionListenerMap.remove(e.getTransactionId());
 				transactionListener.onTransactionCommit(e.getExecutionTimeNs());
-				transactionListener.onTransactionCommit();
-				transactionListener.onTransactionComplete(e.getExecutionTimeNs());
 			} else {
 				logErrorAndDetachIfNeeded(e);
 			}
@@ -78,8 +75,6 @@ class ObserverToListenerAdapter implements Observer<Event> {
 			if (transactionListener != null) {
 				transactionListenerMap.remove(e.getTransactionId());
 				transactionListener.onTransactionRollback(e.getExecutionTimeNs());
-				transactionListener.onTransactionRollback();
-				transactionListener.onTransactionComplete(e.getExecutionTimeNs());
 			} else {
 				logErrorAndDetachIfNeeded(e);
 			}

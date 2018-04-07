@@ -1,5 +1,7 @@
 package com.transferwise.spyql;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.datasource.ConnectionProxy;
 import org.springframework.jdbc.datasource.DelegatingDataSource;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -12,6 +14,7 @@ import java.lang.reflect.Proxy;
 import java.sql.*;
 
 public class SpyqlDataSourceProxy extends DelegatingDataSource {
+	private static final Logger log = LoggerFactory.getLogger(SpyqlDataSourceProxy.class);
 
 	private SpyqlListener spyqlListener;
 
@@ -80,7 +83,6 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 		}
 
 		@Override
-		@SuppressWarnings("deprecation")
 		public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
 			try {
 				switch (method.getName()) {
@@ -108,9 +110,9 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 							long transactionExecutionTimeNs = System.nanoTime() - transactionStartTime;
 							try {
 								transactionListener.onTransactionCommit(transactionExecutionTimeNs);
-								transactionListener.onTransactionCommit();
-								transactionListener.onTransactionComplete(transactionExecutionTimeNs);
-							} catch (Exception ignore) {}
+							} catch (Exception e) {
+								log.error("Exception was thrown in listener:", e);
+							}
 						}
 						return null;
 					case "rollback":
@@ -119,9 +121,9 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 							long transactionExecutionTimeNs = System.nanoTime() - transactionStartTime;
 							try {
 								transactionListener.onTransactionRollback(transactionExecutionTimeNs);
-								transactionListener.onTransactionRollback();
-								transactionListener.onTransactionComplete(transactionExecutionTimeNs);
-							} catch (Exception ignore) {}
+							} catch (Exception e) {
+								log.error("Exception was thrown in listener:", e);
+							}
 						}
 						return null;
 				}
@@ -139,7 +141,9 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 		void onTransactionBegin(SpyqlTransactionDefinition transactionDefinition) {
 			try {
 				transactionListener = spyqlListener.onTransactionBegin(transactionDefinition);
-			} catch (Exception ignore) {}
+			} catch (Exception e) {
+				log.error("Exception was thrown in listener:", e);
+			}
 			withinTransaction = true;
 			transactionStartTime = System.nanoTime();
 		}
@@ -150,7 +154,9 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 			}
 			try {
 				transactionListener.onStatementExecute(sql, executionTimeNs);
-			} catch (Exception ignore) {}
+			} catch (Exception e) {
+				log.error("Exception was thrown in listener:", e);
+			}
 		}
 
 		private Connection getTargetConnection(Method operation) {
@@ -191,7 +197,9 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 					} else {
 						try {
 							spyqlListener.onStatementExecute(sql, executionTimeNs);
-						} catch (Exception ignored) {}
+						} catch (Exception e) {
+							log.error("Exception was thrown in listener:", e);
+						}
 					}
 					return result;
 				}
