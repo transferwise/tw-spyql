@@ -104,6 +104,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 					}
 					case "commit":
 						method.invoke(target, args);
+						withinTransaction = false;
 						if (transactionListener != null) {
 							long transactionExecutionTimeNs = System.nanoTime() - transactionStartTime;
 							try {
@@ -115,6 +116,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 						return null;
 					case "rollback":
 						method.invoke(target, args);
+						withinTransaction = false;
 						if (transactionListener != null) {
 							long transactionExecutionTimeNs = System.nanoTime() - transactionStartTime;
 							try {

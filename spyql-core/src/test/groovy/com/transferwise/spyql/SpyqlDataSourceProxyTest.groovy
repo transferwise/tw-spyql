@@ -365,6 +365,58 @@ class SpyqlDataSourceProxyTest extends Specification {
 		0 * _
 	}
 
+	def "after commit transaction is closed"() {
+		given:"a connection with autoCommit = false"
+		def dataSourceMock = Mock(DataSource)
+		def listener = Mock(SpyqlListener)
+		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
+		def originalConnection = Mock(Connection)
+		def originalStatement = Mock(PreparedStatement)
+		def transactionListener = Mock(SpyqlTransactionListener)
+
+		when:
+		def connection = proxy.getConnection()
+		then:
+		1 * dataSourceMock.getConnection() >> originalConnection
+
+		when:"the first statement is prepared"
+		def statement = connection.prepareStatement("SELECT 1")
+		then:"original prepareStatement is called"
+		1 * originalConnection.prepareStatement("SELECT 1") >> originalStatement
+
+		when:"the statement is executed"
+		statement.execute()
+		then:"checks if transaction is required"
+		1 * originalStatement.getConnection() >> originalConnection
+		1 * originalConnection.getAutoCommit() >> false
+		and:"transaction is started"
+		1 * listener.onTransactionBegin(_) >> transactionListener
+		and:"original execute is called"
+		1 * originalStatement.execute() >> true
+
+		when:
+		connection.commit()
+		then:
+		1 * originalConnection.commit()
+		and:
+		1 * transactionListener.onTransactionCommit({it > 0})
+		and:
+		1 * transactionListener.onTransactionCommit()
+		and:
+		1 * transactionListener.onTransactionComplete({it > 0})
+
+		when:"the statement executed again"
+		statement.execute()
+		then:"checks if transaction is required"
+		1 * originalStatement.getConnection() >> originalConnection
+		1 * originalConnection.getAutoCommit() >> true
+		1 * originalStatement.execute() >> true
+		and:"calls onStatementExecute outside of transaction"
+		1 * listener.onStatementExecute("SELECT 1", {it > 0})
+		and:
+		0 * _
+	}
+
 	def "when inside transaction rollback will call onTransactionRollback and onTransactionComplete"() {
 		given:"a connection with autoCommit = false"
 		def dataSourceMock = Mock(DataSource)
@@ -404,6 +456,58 @@ class SpyqlDataSourceProxyTest extends Specification {
 		1 * transactionListener.onTransactionRollback()
 		and:
 		1 * transactionListener.onTransactionComplete({it > 0})
+		and:
+		0 * _
+	}
+
+	def "after rollback transaction is closed"() {
+		given:"a connection with autoCommit = false"
+		def dataSourceMock = Mock(DataSource)
+		def listener = Mock(SpyqlListener)
+		def proxy = new SpyqlDataSourceProxy(dataSourceMock, listener)
+		def originalConnection = Mock(Connection)
+		def originalStatement = Mock(PreparedStatement)
+		def transactionListener = Mock(SpyqlTransactionListener)
+
+		when:
+		def connection = proxy.getConnection()
+		then:
+		1 * dataSourceMock.getConnection() >> originalConnection
+
+		when:"the first statement is prepared"
+		def statement = connection.prepareStatement("SELECT 1")
+		then:"original prepareStatement is called"
+		1 * originalConnection.prepareStatement("SELECT 1") >> originalStatement
+
+		when:"the statement is executed"
+		statement.execute()
+		then:"checks if transaction is required"
+		1 * originalStatement.getConnection() >> originalConnection
+		1 * originalConnection.getAutoCommit() >> false
+		and:"transaction is started"
+		1 * listener.onTransactionBegin(_) >> transactionListener
+		and:"original execute is called"
+		1 * originalStatement.execute() >> true
+
+		when:
+		connection.rollback()
+		then:
+		1 * originalConnection.rollback()
+		and:
+		1 * transactionListener.onTransactionRollback({it > 0})
+		and:
+		1 * transactionListener.onTransactionRollback()
+		and:
+		1 * transactionListener.onTransactionComplete({it > 0})
+
+		when:"the statement executed again"
+		statement.execute()
+		then:"checks if transaction is required"
+		1 * originalStatement.getConnection() >> originalConnection
+		1 * originalConnection.getAutoCommit() >> true
+		1 * originalStatement.execute() >> true
+		and:"calls onStatementExecute outside of transaction"
+		1 * listener.onStatementExecute("SELECT 1", {it > 0})
 		and:
 		0 * _
 	}
