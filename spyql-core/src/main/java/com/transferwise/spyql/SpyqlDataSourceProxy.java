@@ -12,28 +12,28 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.sql.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class SpyqlDataSourceProxy extends DelegatingDataSource {
 	private static final Logger log = LoggerFactory.getLogger(SpyqlDataSourceProxy.class);
+	private static final int MAX_ERROR_COUNT_DEFAULT = 1000;
 
 	private SpyqlDataSourceListener spyqlListener;
-
-	public SpyqlDataSourceProxy(DataSource targetDataSource, SpyqlDataSourceListener spyqlListener) {
-		super(targetDataSource);
-		this.spyqlListener = spyqlListener;
-	}
-
-	public SpyqlDataSourceProxy(SpyqlDataSourceListener spyqlListener) {
-		super();
-		this.spyqlListener = spyqlListener;
-	}
+	private Integer maxErrorCount;
+	private AtomicInteger errorCount = new AtomicInteger(0);
 
 	public SpyqlDataSourceProxy(DataSource targetDataSource) {
-		super(targetDataSource);
+		this(targetDataSource, null);
 	}
 
-	public SpyqlDataSourceProxy() {
-		super();
+	public SpyqlDataSourceProxy(DataSource targetDataSource, SpyqlDataSourceListener spyqlListener) {
+		this(targetDataSource, spyqlListener, MAX_ERROR_COUNT_DEFAULT);
+	}
+
+	public SpyqlDataSourceProxy(DataSource targetDataSource, SpyqlDataSourceListener spyqlListener, Integer maxErrorCount) {
+		super(targetDataSource);
+		this.spyqlListener = spyqlListener;
+		this.maxErrorCount = maxErrorCount;
 	}
 
 	public void setListener(SpyqlDataSourceListener listener) {
@@ -143,7 +143,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 							try {
 								transactionListener.onTransactionCommit(transactionExecutionTimeNs);
 							} catch (Exception e) {
-								log.error("Exception was thrown in listener:", e);
+								logError("Exception was thrown while executing SpyqlTransactionListener.onTransactionCommit", e);
 							}
 						}
 						return null;
@@ -155,7 +155,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 							try {
 								transactionListener.onTransactionRollback(transactionExecutionTimeNs);
 							} catch (Exception e) {
-								log.error("Exception was thrown in listener:", e);
+								logError("Exception was thrown while executing SpyqlTransactionListener.onTransactionRollback", e);
 							}
 						}
 						return null;
@@ -179,7 +179,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 			try {
 				transactionListener = spyqlConnectionListener.onTransactionBegin(transactionDefinition);
 			} catch (Exception e) {
-				log.error("Exception was thrown in listener:", e);
+				logError("Exception was thrown while executing SpyqlConnectionListener.onTransactionBegin", e);
 			}
 			withinTransaction = true;
 			transactionStartTime = System.nanoTime();
@@ -193,13 +193,13 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 				try {
 					transactionListener.onStatementExecute(sql, executionTimeNs);
 				} catch (Exception e) {
-					log.error("Exception was thrown in listener:", e);
+					logError("Exception was thrown while executing SpyqlTransactionListener.onStatementExecute", e);
 				}
 			} else {
 				try {
 					spyqlConnectionListener.onStatementExecute(sql, executionTimeNs);
 				} catch (Exception e) {
-					log.error("Exception was thrown in listener:", e);
+					logError("Exception was thrown while executing SpyqlConnectionListener.onStatementExecute", e);
 				}
 			}
 		}
@@ -261,6 +261,16 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 					method.getParameterCount() > 0 &&
 					method.getParameterTypes()[0] == String.class &&
 					args[0] != null;
+		}
+	}
+
+	private void logError(String message, Exception e) {
+		int errorCountNumber = errorCount.incrementAndGet();
+
+		if (errorCountNumber == maxErrorCount) {
+			log.error("The maxErrorCount({}) was reached. No error will be logged anymore", errorCountNumber);
+		} else if (errorCountNumber < maxErrorCount) {
+			log.error(message, e);
 		}
 	}
 
