@@ -1,26 +1,33 @@
 package com.transferwise.spyql.rx.events;
 
-public class StatementExecuteEvent implements Event {
+public class StatementExecuteEvent implements ConnectionEvent {
+	private long connectionId;
 	private String sql;
-	private Long executionTimeNs;
+	private long executionTimeNs;
 
-	public StatementExecuteEvent(String sql, Long executionTimeNs) {
+	public StatementExecuteEvent(long connectionId, String sql, long executionTimeNs) {
+		this.connectionId = connectionId;
 		this.sql = sql;
 		this.executionTimeNs = executionTimeNs;
+	}
+
+	public long getConnectionId() {
+		return connectionId;
 	}
 
 	public String getSql() {
 		return sql;
 	}
 
-	public Long getExecutionTimeNs() {
+	public long getExecutionTimeNs() {
 		return executionTimeNs;
 	}
 
 	@Override
 	public String toString() {
 		return "StatementExecuteEvent{" +
-				"sql='" + sql + '\'' +
+				"connectionId=" + connectionId +
+				", sql='" + sql + '\'' +
 				", executionTimeNs=" + executionTimeNs +
 				'}';
 	}

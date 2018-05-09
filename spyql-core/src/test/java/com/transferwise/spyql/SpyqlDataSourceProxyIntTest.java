@@ -24,7 +24,7 @@ public class SpyqlDataSourceProxyIntTest {
 
 	@Test
 	public void createDataSourceProxy() throws SQLException {
-		SpyqlListener listener = new TestListener();
+		SpyqlDataSourceListener listener = new TestListener();
 		DataSource proxy = new SpyqlDataSourceProxy(dataSource, listener);
 		Connection connection = proxy.getConnection();
 		assertThat(connection, is(notNullValue()));
@@ -34,16 +34,26 @@ public class SpyqlDataSourceProxyIntTest {
 		assertThat(result.getInt(1), is(equalTo(1)));
 	}
 
-	static class TestListener implements SpyqlListener {
+	static class TestListener implements SpyqlDataSourceListener {
 
 		@Override
-		public SpyqlTransactionListener onTransactionBegin(SpyqlTransactionDefinition transactionDefinition) {
-			return null;
-		}
+		public SpyqlConnectionListener onGetConnection(Long acquireTimeNs) {
+			return new SpyqlConnectionListener() {
+				@Override
+				public SpyqlTransactionListener onTransactionBegin(SpyqlTransactionDefinition transactionDefinition) {
+					return null;
+				}
 
-		@Override
-		public void onStatementExecute(String sql, Long executionTimeNs) {
+				@Override
+				public void onStatementExecute(String sql, Long executionTimeNs) {
 
+				}
+
+				@Override
+				public void onClose() {
+
+				}
+			};
 		}
 	}
 }
