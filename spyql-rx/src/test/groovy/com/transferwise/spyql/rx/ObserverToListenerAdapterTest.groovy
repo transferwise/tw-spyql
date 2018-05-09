@@ -110,10 +110,6 @@ class ObserverToListenerAdapterTest extends Specification {
 		observer.onNext(new TransactionCommitEvent(42, 123))
 		then:
 		1 * txListener.onTransactionCommit(123)
-		and:
-		1 * txListener.onTransactionCommit()
-		and:
-		1 * txListener.onTransactionComplete(123)
 	}
 
 	def "doesn't fail if there is no transaction when TransactionCommitEvent received"() {
