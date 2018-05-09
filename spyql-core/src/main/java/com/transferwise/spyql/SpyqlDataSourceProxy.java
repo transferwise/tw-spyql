@@ -16,14 +16,14 @@ import java.sql.*;
 public class SpyqlDataSourceProxy extends DelegatingDataSource {
 	private static final Logger log = LoggerFactory.getLogger(SpyqlDataSourceProxy.class);
 
-	private SpyqlListener spyqlListener;
+	private SpyqlDataSourceListener spyqlListener;
 
-	public SpyqlDataSourceProxy(DataSource targetDataSource, SpyqlListener spyqlListener) {
+	public SpyqlDataSourceProxy(DataSource targetDataSource, SpyqlDataSourceListener spyqlListener) {
 		super(targetDataSource);
 		this.spyqlListener = spyqlListener;
 	}
 
-	public SpyqlDataSourceProxy(SpyqlListener spyqlListener) {
+	public SpyqlDataSourceProxy(SpyqlDataSourceListener spyqlListener) {
 		super();
 		this.spyqlListener = spyqlListener;
 	}
@@ -36,7 +36,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 		super();
 	}
 
-	public void setListener(SpyqlListener listener) {
+	public void setListener(SpyqlDataSourceListener listener) {
 		spyqlListener = listener;
 	}
 
@@ -47,18 +47,33 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 
 	@Override
 	public Connection getConnection() throws SQLException {
-		Connection target = super.getConnection();
-		return spyqlListener == null ? target : createConnectionProxy(target);
+		return wrappedGetConnection(super::getConnection);
 	}
 
 	@Override
 	public Connection getConnection(String username, String password) throws SQLException {
-		Connection target = super.getConnection(username, password);
-		return spyqlListener == null ? target : createConnectionProxy(target);
+		return wrappedGetConnection(() -> super.getConnection(username, password));
 	}
 
-	private Connection createConnectionProxy(Connection target) {
-		return createProxy(new ConnectionInvocationHandler(target), ConnectionProxy.class);
+	private Connection wrappedGetConnection(ConnectionFactory connectionFactory) throws SQLException {
+		if (spyqlListener == null) {
+			return connectionFactory.getConnection();
+		}
+		long startTime = System.nanoTime();
+		Connection target = connectionFactory.getConnection();
+		if (target == null) {
+			return null;
+		}
+		long executionTimeNs = System.nanoTime() - startTime;
+		SpyqlConnectionListener spyqlConnectionListener = spyqlListener.onGetConnection(executionTimeNs);
+		if (spyqlConnectionListener != null) {
+			return createConnectionProxy(target, spyqlConnectionListener);
+		}
+		return target;
+	}
+
+	private Connection createConnectionProxy(Connection target, SpyqlConnectionListener spyqlConnectionListener) {
+		return createProxy(new ConnectionInvocationHandler(target, spyqlConnectionListener), ConnectionProxy.class);
 	}
 
 	private <T> T createProxy(InvocationHandler invocationHandler, Class<T> clazz) {
@@ -70,16 +85,15 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 
 	private class ConnectionInvocationHandler implements InvocationHandler {
 
+		private SpyqlConnectionListener spyqlConnectionListener;
 		private Connection target;
 		private boolean withinTransaction = false;
 		private SpyqlTransactionListener transactionListener;
 		private long transactionStartTime;
 
-		ConnectionInvocationHandler(Connection target) {
-			if (target == null) {
-				throw new IllegalArgumentException("target connection cannot be null");
-			}
+		ConnectionInvocationHandler(Connection target, SpyqlConnectionListener spyqlConnectionListener) {
 			this.target = target;
+			this.spyqlConnectionListener = spyqlConnectionListener;
 		}
 
 		@Override
@@ -88,18 +102,27 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 				switch (method.getName()) {
 					case "createStatement": {
 						Statement statement = (Statement) method.invoke(target, args);
+						if (statement == null) {
+							return null;
+						}
 						StatementInvocationHandler<Statement> invocationHandler =
 								new StatementInvocationHandler<>(statement, this, null);
 						return createProxy(invocationHandler, Statement.class);
 					}
 					case "prepareStatement": {
 						PreparedStatement statement = (PreparedStatement) method.invoke(target, args);
+						if (statement == null) {
+							return null;
+						}
 						StatementInvocationHandler<PreparedStatement> invocationHandler =
 								new StatementInvocationHandler<>(statement, this, (String) args[0]);
 						return createProxy(invocationHandler, PreparedStatement.class);
 					}
 					case "prepareCall": {
 						CallableStatement statement = (CallableStatement) method.invoke(target, args);
+						if (statement == null) {
+							return null;
+						}
 						StatementInvocationHandler<CallableStatement> invocationHandler =
 								new StatementInvocationHandler<>(statement, this, (String) args[0]);
 						return createProxy(invocationHandler, CallableStatement.class);
@@ -128,6 +151,10 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 							}
 						}
 						return null;
+					case "close":
+						method.invoke(target, args);
+						spyqlConnectionListener.onClose();
+						return null;
 				}
 
 				return method.invoke(target, args);
@@ -142,7 +169,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 
 		void onTransactionBegin(SpyqlTransactionDefinition transactionDefinition) {
 			try {
-				transactionListener = spyqlListener.onTransactionBegin(transactionDefinition);
+				transactionListener = spyqlConnectionListener.onTransactionBegin(transactionDefinition);
 			} catch (Exception e) {
 				log.error("Exception was thrown in listener:", e);
 			}
@@ -151,13 +178,21 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 		}
 
 		void onStatementExecuted(String sql, Long executionTimeNs) {
-			if (transactionListener == null) {
-				return;
-			}
-			try {
-				transactionListener.onStatementExecute(sql, executionTimeNs);
-			} catch (Exception e) {
-				log.error("Exception was thrown in listener:", e);
+			if (isInTransaction()) {
+				if (transactionListener == null) {
+					return;
+				}
+				try {
+					transactionListener.onStatementExecute(sql, executionTimeNs);
+				} catch (Exception e) {
+					log.error("Exception was thrown in listener:", e);
+				}
+			} else {
+				try {
+					spyqlConnectionListener.onStatementExecute(sql, executionTimeNs);
+				} catch (Exception e) {
+					log.error("Exception was thrown in listener:", e);
+				}
 			}
 		}
 
@@ -173,9 +208,6 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 		private String sql;
 
 		StatementInvocationHandler(T target, ConnectionInvocationHandler connectionInvocationHandler, String sql) {
-			if (target == null) {
-				throw new IllegalArgumentException("target statement cannot be null");
-			}
 			this.target = target;
 			this.connectionInvocationHandler = connectionInvocationHandler;
 			this.sql = sql;
@@ -194,15 +226,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 					long executionTimeNs = System.nanoTime() - startTime;
 
 					String sql = getSql(method, args);
-					if (connectionInvocationHandler.isInTransaction()) {
-						connectionInvocationHandler.onStatementExecuted(sql, executionTimeNs);
-					} else {
-						try {
-							spyqlListener.onStatementExecute(sql, executionTimeNs);
-						} catch (Exception e) {
-							log.error("Exception was thrown in listener:", e);
-						}
-					}
+					connectionInvocationHandler.onStatementExecuted(sql, executionTimeNs);
 					return result;
 				}
 
@@ -232,4 +256,7 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 		}
 	}
 
+	interface ConnectionFactory {
+		Connection getConnection() throws SQLException;
+	}
 }

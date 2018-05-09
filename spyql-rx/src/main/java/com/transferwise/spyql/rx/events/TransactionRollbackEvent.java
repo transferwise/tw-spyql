@@ -1,14 +1,15 @@
 package com.transferwise.spyql.rx.events;
 
 public class TransactionRollbackEvent extends TransactionCompleteEvent {
-	public TransactionRollbackEvent(long id, Long executionTimeNs) {
-		super(id, executionTimeNs);
+	public TransactionRollbackEvent(long connectionId, long transactionId, long executionTimeNs) {
+		super(connectionId, transactionId, executionTimeNs);
 	}
 
 	@Override
 	public String toString() {
 		return "TransactionRollbackEvent{" +
-				"transactionId=" + getTransactionId() +
+				"connectionId=" + getConnectionId() +
+				", transactionId=" + getTransactionId() +
 				", executionTimeNs=" + getExecutionTimeNs() +
 				'}';
 	}

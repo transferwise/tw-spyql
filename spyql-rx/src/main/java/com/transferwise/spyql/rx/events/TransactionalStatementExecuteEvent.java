@@ -3,8 +3,8 @@ package com.transferwise.spyql.rx.events;
 public class TransactionalStatementExecuteEvent extends StatementExecuteEvent implements TransactionEvent {
 	private long transactionId;
 
-	public TransactionalStatementExecuteEvent(String sql, Long executionTimeNs, long transactionId) {
-		super(sql, executionTimeNs);
+	public TransactionalStatementExecuteEvent(long connectionId, long transactionId, String sql, Long executionTimeNs) {
+		super(connectionId, sql, executionTimeNs);
 		this.transactionId = transactionId;
 	}
 
@@ -16,7 +16,8 @@ public class TransactionalStatementExecuteEvent extends StatementExecuteEvent im
 	@Override
 	public String toString() {
 		return "TransactionalStatementExecuteEvent{" +
-				"transactionId=" + transactionId +
+				"connectionId=" + getConnectionId() +
+				", transactionId=" + transactionId +
 				", sql='" + getSql() + '\'' +
 				", executionTimeNs=" + getExecutionTimeNs() +
 				'}';
