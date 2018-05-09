@@ -1,6 +1,8 @@
 package com.transferwise.spyql.rx
 
-import com.transferwise.spyql.SpyqlConnectionListener
+import com.transferwise.spyql.GetConnectionException
+import com.transferwise.spyql.GetConnectionNull
+import com.transferwise.spyql.GetConnectionSuccess
 import com.transferwise.spyql.SpyqlDataSourceListener
 import com.transferwise.spyql.SpyqlTransactionDefinition
 import com.transferwise.spyql.rx.events.ConnectionAcquireEvent
@@ -17,13 +19,37 @@ class ObservableListenerTest extends Specification {
 		given:
 		def subject = Mock(Subject)
 		def listener = new ObservableListener(100, 100, subject)
+		def exception = new RuntimeException("some exception message")
+		def exceptionName = exception.getClass().getName()
+		def exceptionMessage = exception.getMessage()
 
 		when:
-		listener.onGetConnection(123L)
+		listener.onGetConnection(new GetConnectionSuccess(123L))
 		then:
 		1 * subject.onNext({ ConnectionAcquireEvent e ->
 			e.getConnectionId() == 1L
-			e.getAcquireTimeNs() == 123L
+			def result = (GetConnectionSuccess) e.getResult()
+			result.executionTimeNs == 123L
+		})
+
+		when:
+		listener.onGetConnection(new GetConnectionNull(123L))
+		then:
+		1 * subject.onNext({ ConnectionAcquireEvent e ->
+			e.getConnectionId() == 1L
+			def result = (GetConnectionNull) e.getResult()
+			result.executionTimeNs == 123L
+		})
+
+		when:
+		listener.onGetConnection(new GetConnectionException(exceptionName, exceptionMessage, 123L))
+		then:
+		1 * subject.onNext({ ConnectionAcquireEvent e ->
+			def result = (GetConnectionException) e.getResult()
+			e.getConnectionId() == 1L
+			result.exceptionName == exceptionName
+			result.exceptionMessage == exceptionMessage
+			result.executionTimeNs == 123L
 		})
 	}
 
@@ -31,7 +57,7 @@ class ObservableListenerTest extends Specification {
 		given:
 		def subject = Mock(Subject)
 		def listener = new ObservableListener(100, 100, subject)
-		def connectionListener = listener.onGetConnection(123L)
+		def connectionListener = listener.onGetConnection(new GetConnectionSuccess(123L))
 
 		when:
 		connectionListener.onTransactionBegin(new SpyqlTransactionDefinition("tx", true, 1))
@@ -47,7 +73,7 @@ class ObservableListenerTest extends Specification {
 		given:
 		def subject = Mock(Subject)
 		def listener = new ObservableListener(100, 100, subject)
-		def connectionListener = listener.onGetConnection(123L)
+		def connectionListener = listener.onGetConnection(new GetConnectionSuccess(123L))
 
 		when:
 		connectionListener.onTransactionBegin(new SpyqlTransactionDefinition("tx", true, 1))
@@ -64,7 +90,7 @@ class ObservableListenerTest extends Specification {
 		given:
 		def subject = Mock(Subject)
 		def listener = new ObservableListener(100, 100, subject)
-		def connectionListener = listener.onGetConnection(123L)
+		def connectionListener = listener.onGetConnection(new GetConnectionSuccess(123L))
 
 		when:
 		connectionListener.onStatementExecute("SELECT 1", 123L)
@@ -79,7 +105,7 @@ class ObservableListenerTest extends Specification {
 		given:
 		def subject = Mock(Subject)
 		def listener = new ObservableListener(100, 100, subject)
-		def connectionListener = listener.onGetConnection(123L)
+		def connectionListener = listener.onGetConnection(new GetConnectionSuccess(123L))
 		def txListener = connectionListener.onTransactionBegin(new SpyqlTransactionDefinition("tx", true, 1))
 
 		when:
@@ -95,7 +121,7 @@ class ObservableListenerTest extends Specification {
 		given:
 		def subject = Mock(Subject)
 		def listener = new ObservableListener(100, 100, subject)
-		def connectionListener = listener.onGetConnection(123L)
+		def connectionListener = listener.onGetConnection(new GetConnectionSuccess(123L))
 		def txListener = connectionListener.onTransactionBegin(new SpyqlTransactionDefinition("tx", true, 1))
 
 		when:
@@ -111,7 +137,7 @@ class ObservableListenerTest extends Specification {
 		given:
 		def subject = Mock(Subject)
 		def listener = new ObservableListener(100, 100, subject)
-		def connectionListener = listener.onGetConnection(123L)
+		def connectionListener = listener.onGetConnection(new GetConnectionSuccess(123L))
 		def txListener = connectionListener.onTransactionBegin(new SpyqlTransactionDefinition("tx", true, 1))
 
 		when:

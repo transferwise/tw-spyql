@@ -47,7 +47,7 @@ class ObserverToListenerAdapter implements Observer<Event> {
 		// RANT: This looks so ugly in Java
 		if (event instanceof ConnectionAcquireEvent) {
 			ConnectionAcquireEvent e = (ConnectionAcquireEvent) event;
-			SpyqlConnectionListener connectionListener = listener.onGetConnection(e.getAcquireTimeNs());
+			SpyqlConnectionListener connectionListener = listener.onGetConnection(e.getResult());
 			if (connectionListenerMap.size() < maxConcurrentConnections) {
 				if (connectionListener == null) {
 					connectionListener = new NullConnectionListener();

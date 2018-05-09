@@ -1,5 +1,5 @@
 package com.transferwise.spyql;
 
 public interface SpyqlDataSourceListener {
-	SpyqlConnectionListener onGetConnection(Long acquireTimeNs);
+	SpyqlConnectionListener onGetConnection(GetConnectionResult result);
 }

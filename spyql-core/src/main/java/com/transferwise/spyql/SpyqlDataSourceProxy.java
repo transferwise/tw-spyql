@@ -60,12 +60,20 @@ public class SpyqlDataSourceProxy extends DelegatingDataSource {
 			return connectionFactory.getConnection();
 		}
 		long startTime = System.nanoTime();
-		Connection target = connectionFactory.getConnection();
-		if (target == null) {
-			return null;
+		Connection target;
+		try {
+			target = connectionFactory.getConnection();
+		} catch (Throwable e) {
+			long executionTimeNs = System.nanoTime() - startTime;
+			spyqlListener.onGetConnection(new GetConnectionException(e.getClass().getName(), e.getMessage(), executionTimeNs));
+			throw e;
 		}
 		long executionTimeNs = System.nanoTime() - startTime;
-		SpyqlConnectionListener spyqlConnectionListener = spyqlListener.onGetConnection(executionTimeNs);
+		if (target == null) {
+			spyqlListener.onGetConnection(new GetConnectionNull(executionTimeNs));
+			return null;
+		}
+		SpyqlConnectionListener spyqlConnectionListener = spyqlListener.onGetConnection(new GetConnectionSuccess(executionTimeNs));
 		if (spyqlConnectionListener != null) {
 			return createConnectionProxy(target, spyqlConnectionListener);
 		}

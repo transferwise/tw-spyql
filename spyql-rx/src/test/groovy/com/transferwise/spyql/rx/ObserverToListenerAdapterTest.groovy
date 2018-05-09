@@ -1,5 +1,8 @@
 package com.transferwise.spyql.rx
 
+import com.transferwise.spyql.GetConnectionException
+import com.transferwise.spyql.GetConnectionNull
+import com.transferwise.spyql.GetConnectionSuccess
 import com.transferwise.spyql.SpyqlConnectionListener
 import com.transferwise.spyql.SpyqlDataSourceListener
 import com.transferwise.spyql.SpyqlTransactionDefinition
@@ -21,9 +24,27 @@ class ObserverToListenerAdapterTest extends Specification {
 		def observer = new ObserverToListenerAdapter(listener, 100, 100)
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(42, 321L))
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> null
+		1 * listener.onGetConnection({GetConnectionSuccess result ->
+			result.executionTimeNs == 123L
+		}) >> null
+
+		when:
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionNull(123L)))
+		then:
+		1 * listener.onGetConnection({GetConnectionNull result ->
+			result.executionTimeNs == 123L
+		}) >> null
+
+		when:
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionException("foo", "bar", 123L)))
+		then:
+		1 * listener.onGetConnection({GetConnectionException result ->
+			result.executionTimeNs == 123L
+			result.exceptionName == "foo"
+			result.exceptionMessage == "bar"
+		}) >> null
 	}
 
 	def "decodes StatementExecuteEvent"() {
@@ -33,9 +54,9 @@ class ObserverToListenerAdapterTest extends Specification {
 		def connectionListener = Mock(SpyqlConnectionListener)
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(42, 321L))
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener
+		1 * listener.onGetConnection(_) >> connectionListener
 
 		when:
 		observer.onNext(new StatementExecuteEvent(42, "SELECT 1", 123L))
@@ -50,9 +71,9 @@ class ObserverToListenerAdapterTest extends Specification {
 		def connectionListener = Mock(SpyqlConnectionListener)
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(42, 321L))
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener
+		1 * listener.onGetConnection(_) >> connectionListener
 
 		when:
 		observer.onNext(new TransactionalStatementExecuteEvent(42, 43, "SELECT 1", 123L))
@@ -67,9 +88,9 @@ class ObserverToListenerAdapterTest extends Specification {
 		def connectionListener = Mock(SpyqlConnectionListener)
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(42, 321L))
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener
+		1 * listener.onGetConnection(_) >> connectionListener
 
 		when:
 		observer.onNext(new TransactionBeginEvent(42, 43, "tx", true, 1))
@@ -93,23 +114,23 @@ class ObserverToListenerAdapterTest extends Specification {
 		observer.getConnectionListenerMapSize() == 0
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(1, 321L))
+		observer.onNext(new ConnectionAcquireEvent(1, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener1
+		1 * listener.onGetConnection(_) >> connectionListener1
 		and:
 		observer.getConnectionListenerMapSize() == 1
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(2, 321L))
+		observer.onNext(new ConnectionAcquireEvent(2, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener2
+		1 * listener.onGetConnection(_) >> connectionListener2
 		and:
 		observer.getConnectionListenerMapSize() == 2
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(3, 321L))
+		observer.onNext(new ConnectionAcquireEvent(3, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener3
+		1 * listener.onGetConnection(_) >> connectionListener3
 		and:
 		observer.getConnectionListenerMapSize() == 2
 	}
@@ -124,9 +145,9 @@ class ObserverToListenerAdapterTest extends Specification {
 		def txListener3 = Mock(SpyqlTransactionListener)
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(42, 321L))
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener
+		1 * listener.onGetConnection(_) >> connectionListener
 
 		expect:
 		observer.getTransactionListenerMapSize() == 0
@@ -173,9 +194,9 @@ class ObserverToListenerAdapterTest extends Specification {
 		def connectionListener = Mock(SpyqlConnectionListener)
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(42, 321L))
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener
+		1 * listener.onGetConnection(_) >> connectionListener
 
 		when:
 		observer.onNext(new TransactionBeginEvent(42, 43, "tx", true, 1))
@@ -195,9 +216,9 @@ class ObserverToListenerAdapterTest extends Specification {
 		def connectionListener = Mock(SpyqlConnectionListener)
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(42, 321L))
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener
+		1 * listener.onGetConnection(_) >> connectionListener
 
 		when:
 		observer.onNext(new TransactionCommitEvent(42, 43, 123))
@@ -212,9 +233,9 @@ class ObserverToListenerAdapterTest extends Specification {
 		def connectionListener = Mock(SpyqlConnectionListener)
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(42, 321L))
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener
+		1 * listener.onGetConnection(_) >> connectionListener
 
 		when:
 		observer.onNext(new TransactionRollbackEvent(42, 43, 123))
@@ -231,9 +252,9 @@ class ObserverToListenerAdapterTest extends Specification {
 		def txListener2 = Mock(SpyqlTransactionListener)
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(42, 321L))
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener
+		1 * listener.onGetConnection(_) >> connectionListener
 
 		expect:
 		observer.getTransactionListenerMapSize() == 0
@@ -272,9 +293,9 @@ class ObserverToListenerAdapterTest extends Specification {
 		def txListener2 = Mock(SpyqlTransactionListener)
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(42, 321L))
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener
+		1 * listener.onGetConnection(_) >> connectionListener
 
 		expect:
 		observer.getTransactionListenerMapSize() == 0
@@ -319,9 +340,9 @@ class ObserverToListenerAdapterTest extends Specification {
 		def connectionListener = Mock(SpyqlConnectionListener)
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(42, 321L))
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener
+		1 * listener.onGetConnection(_) >> connectionListener
 
 		when:
 		observer.onNext(new TransactionBeginEvent(42, 1, "tx", true, 1))
@@ -343,9 +364,9 @@ class ObserverToListenerAdapterTest extends Specification {
 		def connectionListener = Mock(SpyqlConnectionListener)
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(42, 321L))
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener
+		1 * listener.onGetConnection(_) >> connectionListener
 
 		when:
 		observer.onNext(new TransactionBeginEvent(42, 1, "tx", true, 1))
@@ -413,9 +434,9 @@ class ObserverToListenerAdapterTest extends Specification {
 		def connectionListener = Mock(SpyqlConnectionListener)
 
 		when:
-		observer.onNext(new ConnectionAcquireEvent(42, 321L))
+		observer.onNext(new ConnectionAcquireEvent(42, new GetConnectionSuccess(123L)))
 		then:
-		1 * listener.onGetConnection(321L) >> connectionListener
+		1 * listener.onGetConnection(_) >> connectionListener
 
 		when:
 		(1..ObserverToListenerAdapter.MAX_ERROR_COUNT + 1).each {
