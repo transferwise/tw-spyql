@@ -1,19 +1,13 @@
 package com.transferwise.spyql.rx
 
-import com.transferwise.spyql.SpyqlDataSourceListener
-import com.transferwise.spyql.SpyqlDataSourceProxy
-import com.transferwise.spyql.SpyqlConnectionListener
-import com.transferwise.spyql.SpyqlTransactionListener
+import com.transferwise.spyql.*
 import spock.lang.Ignore
 import spock.lang.Specification
 
 import javax.sql.DataSource
-import java.lang.reflect.Proxy
-import java.sql.CallableStatement
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.SQLException
-import java.sql.Statement
 
 // !!!IMPORTANT!!!
 // This test is almost an exact copy of com.transferwise.spyql.SpyqlDataSourceProxyTest.
@@ -44,7 +38,6 @@ class ObservableListenerIntTest extends Specification {
 			proxy = new SpyqlDataSourceProxy(dataSourceMock)
 		}
 	}
-
 
 	def "getConnection calls original getConnection when no listener attached"() {
 		given:
@@ -78,7 +71,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> Mock(Connection)
 		and:
-		1 * listener.onGetConnection({it > 0})
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0})
 	}
 
 	def "onGetConnection is called when connection is acquired using getConnection with username and password"() {
@@ -91,7 +84,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection("username", "password") >> Mock(Connection)
 		and:
-		1 * listener.onGetConnection({it > 0})
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0})
 	}
 
 	def "if target data source returns null when getConnection is called then proxy also returns null"() {
@@ -103,7 +96,32 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> null
 		and:
+		1 * listener.onGetConnection({GetConnectionNull result ->
+			result.getExecutionTimeNs() > 0
+		}) >> null
+		and:
 		connection == null
+	}
+
+	def "if target data source throws when getConnection is called then proxy also throws"() {
+		given:
+		setupSpyql()
+
+		when:
+		proxy.getConnection()
+		then:
+		1 * dataSourceMock.getConnection() >> {
+			throw new SQLException("foo")
+		}
+		and:
+		1 * listener.onGetConnection({GetConnectionException result ->
+			result.getExecutionTimeNs() > 0
+			result.exceptionName == SQLException.name
+			result.exceptionMessage == "foo"
+		}) >> null
+		and:
+		def ex = thrown(SQLException)
+		ex.message == "foo"
 	}
 
 	def "onClose is called when connection is closed"() {
@@ -115,7 +133,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:
 		connection.close()
@@ -132,7 +150,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:
 		connection.commit()
@@ -151,7 +169,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:
 		connection.rollback()
@@ -170,7 +188,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:
 		def statement = connection.prepareStatement("SELECT 1")
@@ -197,7 +215,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:
 		def statement = connection.prepareStatement("SELECT 1")
@@ -225,7 +243,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -276,7 +294,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is executed"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -304,7 +322,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is executed"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -351,7 +369,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -387,7 +405,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -432,7 +450,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -468,7 +486,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -513,7 +531,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -544,7 +562,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -575,7 +593,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -608,7 +626,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -648,7 +666,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -689,7 +707,7 @@ class ObservableListenerIntTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -725,5 +743,4 @@ class ObservableListenerIntTest extends Specification {
 		expect:
 		false
 	}
-
 }

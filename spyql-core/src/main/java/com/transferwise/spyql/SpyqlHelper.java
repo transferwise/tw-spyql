@@ -17,7 +17,7 @@ public class SpyqlHelper {
 	public static void setDataSourceListener(DataSource dataSource, SpyqlConnectionListener listener) throws SQLException, SpyqlException {
 		setDataSourceListener(dataSource, new SpyqlDataSourceListener() {
 			@Override
-			public SpyqlConnectionListener onGetConnection(Long acquireTimeNs) {
+			public SpyqlConnectionListener onGetConnection(GetConnectionResult result) {
 				return listener;
 			}
 		});

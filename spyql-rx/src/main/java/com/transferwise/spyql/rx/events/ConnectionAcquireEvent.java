@@ -1,12 +1,14 @@
 package com.transferwise.spyql.rx.events;
 
+import com.transferwise.spyql.GetConnectionResult;
+
 public class ConnectionAcquireEvent implements ConnectionEvent {
 	private long connectionId;
-	private long acquireTimeNs;
+	private GetConnectionResult result;
 
-	public ConnectionAcquireEvent(long connectionId, long acquireTimeNs) {
+	public ConnectionAcquireEvent(long connectionId, GetConnectionResult result) {
 		this.connectionId = connectionId;
-		this.acquireTimeNs = acquireTimeNs;
+		this.result = result;
 	}
 
 	@Override
@@ -14,15 +16,15 @@ public class ConnectionAcquireEvent implements ConnectionEvent {
 		return connectionId;
 	}
 
-	public long getAcquireTimeNs() {
-		return acquireTimeNs;
+	public GetConnectionResult getResult() {
+		return result;
 	}
 
 	@Override
 	public String toString() {
 		return "ConnectionAcquireEvent{" +
 				"connectionId=" + connectionId +
-				", acquireTimeNs=" + acquireTimeNs +
+				", result=" + result +
 				'}';
 	}
 }

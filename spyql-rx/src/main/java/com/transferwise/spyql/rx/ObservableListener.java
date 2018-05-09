@@ -1,9 +1,6 @@
 package com.transferwise.spyql.rx;
 
-import com.transferwise.spyql.SpyqlConnectionListener;
-import com.transferwise.spyql.SpyqlDataSourceListener;
-import com.transferwise.spyql.SpyqlTransactionDefinition;
-import com.transferwise.spyql.SpyqlTransactionListener;
+import com.transferwise.spyql.*;
 import com.transferwise.spyql.rx.events.*;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
@@ -38,9 +35,9 @@ public class ObservableListener extends Observable<Event> implements SpyqlDataSo
 	}
 
 	@Override
-	public SpyqlConnectionListener onGetConnection(Long acquireTimeNs) {
+	public SpyqlConnectionListener onGetConnection(GetConnectionResult result) {
 		long connectionId = atomicConnectionId.getAndIncrement();
-		subject.onNext(new ConnectionAcquireEvent(connectionId, acquireTimeNs));
+		subject.onNext(new ConnectionAcquireEvent(connectionId, result));
 		return new ConnectionListener(connectionId);
 	}
 

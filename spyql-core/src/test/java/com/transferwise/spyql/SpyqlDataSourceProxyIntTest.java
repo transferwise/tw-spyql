@@ -37,7 +37,7 @@ public class SpyqlDataSourceProxyIntTest {
 	static class TestListener implements SpyqlDataSourceListener {
 
 		@Override
-		public SpyqlConnectionListener onGetConnection(Long acquireTimeNs) {
+		public SpyqlConnectionListener onGetConnection(GetConnectionResult result) {
 			return new SpyqlConnectionListener() {
 				@Override
 				public SpyqlTransactionListener onTransactionBegin(SpyqlTransactionDefinition transactionDefinition) {

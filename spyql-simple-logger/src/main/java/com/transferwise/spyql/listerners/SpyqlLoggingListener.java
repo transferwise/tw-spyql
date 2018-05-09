@@ -1,9 +1,6 @@
 package com.transferwise.spyql.listerners;
 
-import com.transferwise.spyql.SpyqlConnectionListener;
-import com.transferwise.spyql.SpyqlDataSourceListener;
-import com.transferwise.spyql.SpyqlTransactionDefinition;
-import com.transferwise.spyql.SpyqlTransactionListener;
+import com.transferwise.spyql.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,9 +13,9 @@ public class SpyqlLoggingListener implements SpyqlDataSourceListener {
 	private AtomicLong transactionId = new AtomicLong(0L);
 
 	@Override
-	public SpyqlConnectionListener onGetConnection(Long acquireTimeNs) {
+	public SpyqlConnectionListener onGetConnection(GetConnectionResult result) {
 		long conId = connectionId.incrementAndGet();
-		log.info("GET CONNECTION id: {}, time: {} ns", conId, acquireTimeNs);
+		log.info("GET CONNECTION id: {}, result: {}", conId, result);
 		return new ConnectionListener(conId);
 	}
 

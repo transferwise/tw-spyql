@@ -66,7 +66,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> Mock(Connection)
 		and:
-		1 * listener.onGetConnection({it > 0})
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0})
 	}
 
 	def "onGetConnection is called when connection is acquired using getConnection with username and password"() {
@@ -79,7 +79,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection("username", "password") >> Mock(Connection)
 		and:
-		1 * listener.onGetConnection({it > 0})
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0})
 	}
 
 	def "if target data source returns null when getConnection is called then proxy also returns null"() {
@@ -91,7 +91,32 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> null
 		and:
+		1 * listener.onGetConnection({GetConnectionNull result ->
+			result.getExecutionTimeNs() > 0
+		}) >> null
+		and:
 		connection == null
+	}
+
+	def "if target data source throws when getConnection is called then proxy also throws"() {
+		given:
+		setupSpyql()
+
+		when:
+		proxy.getConnection()
+		then:
+		1 * dataSourceMock.getConnection() >> {
+			throw new SQLException("foo")
+		}
+		and:
+		1 * listener.onGetConnection({GetConnectionException result ->
+			result.getExecutionTimeNs() > 0
+			result.exceptionName == SQLException.name
+			result.exceptionMessage == "foo"
+		}) >> null
+		and:
+		def ex = thrown(SQLException)
+		ex.message == "foo"
 	}
 
 	def "onClose is called when connection is closed"() {
@@ -103,116 +128,12 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:
 		connection.close()
 		then:
 		1 * connectionListener.onClose()
-	}
-
-	def "proxy without listener doesn't wrap connections"() {
-		given:
-		setupSpyql(false)
-
-		when:
-		def connection = proxy.getConnection()
-
-		then:
-		1 * dataSourceMock.getConnection() >> Mock(Connection)
-		!hasInvocationHandler(connection, SpyqlDataSourceProxy.ConnectionInvocationHandler.class)
-
-		when:
-		connection = proxy.getConnection("username", "password")
-
-		then:
-		1 * dataSourceMock.getConnection("username", "password") >> Mock(Connection)
-		!hasInvocationHandler(connection, SpyqlDataSourceProxy.ConnectionInvocationHandler.class)
-	}
-
-	def "if data source listener returns null connection is not wrapped"() {
-		given:
-		setupSpyql()
-
-		when:
-		def connection = proxy.getConnection()
-
-		then:
-		1 * dataSourceMock.getConnection() >> Mock(Connection)
-		and:
-		1 * listener.onGetConnection({it > 0}) >> null
-		and:
-		!hasInvocationHandler(connection, SpyqlDataSourceProxy.ConnectionInvocationHandler.class)
-
-		when:
-		connection = proxy.getConnection("username", "password")
-
-		then:
-		1 * dataSourceMock.getConnection("username", "password") >> Mock(Connection)
-		and:
-		1 * listener.onGetConnection({it > 0}) >> null
-		and:
-		!hasInvocationHandler(connection, SpyqlDataSourceProxy.ConnectionInvocationHandler.class)
-	}
-
-	def "createStatement is proxied"() {
-		given:
-		setupSpyql()
-
-		when:
-		def connection = proxy.getConnection()
-		then:
-		1 * dataSourceMock.getConnection() >> originalConnection
-		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
-		and:
-		hasInvocationHandler(connection, SpyqlDataSourceProxy.ConnectionInvocationHandler.class)
-
-		when:
-		def statement = connection.createStatement()
-		then:
-		1 * originalConnection.createStatement() >> Mock(Statement)
-		hasInvocationHandler(statement, SpyqlDataSourceProxy.StatementInvocationHandler.class)
-	}
-
-	def "prepareStatement is proxied"() {
-		given:
-		setupSpyql()
-
-		when:
-		def connection = proxy.getConnection()
-		then:
-		1 * dataSourceMock.getConnection() >> originalConnection
-		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
-		and:
-		hasInvocationHandler(connection, SpyqlDataSourceProxy.ConnectionInvocationHandler.class)
-
-		when:
-		def statement = connection.prepareStatement("SELECT 1")
-		then:
-		1 * originalConnection.prepareStatement("SELECT 1") >> Mock(PreparedStatement)
-		hasInvocationHandler(statement, SpyqlDataSourceProxy.StatementInvocationHandler.class)
-	}
-
-	def "prepareCall is proxied"() {
-		given:
-		setupSpyql()
-
-		when:
-		def connection = proxy.getConnection()
-		then:
-		1 * dataSourceMock.getConnection() >> originalConnection
-		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
-		and:
-		hasInvocationHandler(connection, SpyqlDataSourceProxy.ConnectionInvocationHandler.class)
-
-		when:
-		def statement = connection.prepareCall("CALL foo()")
-		then:
-		1 * originalConnection.prepareCall("CALL foo()") >> Mock(CallableStatement)
-		hasInvocationHandler(statement, SpyqlDataSourceProxy.StatementInvocationHandler.class)
 	}
 
 	def "when outside transaction commit does nothing"() {
@@ -224,7 +145,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:
 		connection.commit()
@@ -243,7 +164,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:
 		connection.rollback()
@@ -262,7 +183,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:
 		def statement = connection.prepareStatement("SELECT 1")
@@ -289,7 +210,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:
 		def statement = connection.prepareStatement("SELECT 1")
@@ -317,7 +238,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -368,7 +289,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is executed"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -396,7 +317,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is executed"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -443,7 +364,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -479,7 +400,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -524,7 +445,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -560,7 +481,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -605,7 +526,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -636,7 +557,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -667,7 +588,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -700,7 +621,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -740,7 +661,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -781,7 +702,7 @@ class SpyqlDataSourceProxyTest extends Specification {
 		then:
 		1 * dataSourceMock.getConnection() >> originalConnection
 		and:
-		1 * listener.onGetConnection({it > 0}) >> connectionListener
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
 
 		when:"the first statement is prepared"
 		def statement = connection.prepareStatement("SELECT 1")
@@ -816,6 +737,112 @@ class SpyqlDataSourceProxyTest extends Specification {
 	def "when rollback throws onTransactionRollbackFailure is called"() {
 		expect:
 		false
+	}
+
+	// PROXY tests:
+
+	def "proxy without listener doesn't wrap connections"() {
+		given:
+		setupSpyql(false)
+
+		when:
+		def connection = proxy.getConnection()
+
+		then:
+		1 * dataSourceMock.getConnection() >> Mock(Connection)
+		!hasInvocationHandler(connection, SpyqlDataSourceProxy.ConnectionInvocationHandler.class)
+
+		when:
+		connection = proxy.getConnection("username", "password")
+
+		then:
+		1 * dataSourceMock.getConnection("username", "password") >> Mock(Connection)
+		!hasInvocationHandler(connection, SpyqlDataSourceProxy.ConnectionInvocationHandler.class)
+	}
+
+	def "if data source listener returns null connection is not wrapped"() {
+		given:
+		setupSpyql()
+
+		when:
+		def connection = proxy.getConnection()
+
+		then:
+		1 * dataSourceMock.getConnection() >> Mock(Connection)
+		and:
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> null
+		and:
+		!hasInvocationHandler(connection, SpyqlDataSourceProxy.ConnectionInvocationHandler.class)
+
+		when:
+		connection = proxy.getConnection("username", "password")
+
+		then:
+		1 * dataSourceMock.getConnection("username", "password") >> Mock(Connection)
+		and:
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> null
+		and:
+		!hasInvocationHandler(connection, SpyqlDataSourceProxy.ConnectionInvocationHandler.class)
+	}
+
+	def "createStatement is proxied"() {
+		given:
+		setupSpyql()
+
+		when:
+		def connection = proxy.getConnection()
+		then:
+		1 * dataSourceMock.getConnection() >> originalConnection
+		and:
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
+		and:
+		hasInvocationHandler(connection, SpyqlDataSourceProxy.ConnectionInvocationHandler.class)
+
+		when:
+		def statement = connection.createStatement()
+		then:
+		1 * originalConnection.createStatement() >> Mock(Statement)
+		hasInvocationHandler(statement, SpyqlDataSourceProxy.StatementInvocationHandler.class)
+	}
+
+	def "prepareStatement is proxied"() {
+		given:
+		setupSpyql()
+
+		when:
+		def connection = proxy.getConnection()
+		then:
+		1 * dataSourceMock.getConnection() >> originalConnection
+		and:
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
+		and:
+		hasInvocationHandler(connection, SpyqlDataSourceProxy.ConnectionInvocationHandler.class)
+
+		when:
+		def statement = connection.prepareStatement("SELECT 1")
+		then:
+		1 * originalConnection.prepareStatement("SELECT 1") >> Mock(PreparedStatement)
+		hasInvocationHandler(statement, SpyqlDataSourceProxy.StatementInvocationHandler.class)
+	}
+
+	def "prepareCall is proxied"() {
+		given:
+		setupSpyql()
+
+		when:
+		def connection = proxy.getConnection()
+		then:
+		1 * dataSourceMock.getConnection() >> originalConnection
+		and:
+		1 * listener.onGetConnection({GetConnectionSuccess success -> success.executionTimeNs > 0}) >> connectionListener
+		and:
+		hasInvocationHandler(connection, SpyqlDataSourceProxy.ConnectionInvocationHandler.class)
+
+		when:
+		def statement = connection.prepareCall("CALL foo()")
+		then:
+		1 * originalConnection.prepareCall("CALL foo()") >> Mock(CallableStatement)
+		hasInvocationHandler(statement, SpyqlDataSourceProxy.StatementInvocationHandler.class)
 	}
 
 	private static boolean hasInvocationHandler(Object connection, Class<?> clazz) {
