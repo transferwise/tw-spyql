@@ -1,81 +1,80 @@
 package com.transferwise.spyql.listerners;
 
-import com.transferwise.spyql.*;
+import com.transferwise.spyql.event.*;
+import com.transferwise.spyql.listener.SpyqlConnectionListener;
+import com.transferwise.spyql.listener.SpyqlDataSourceListener;
+import com.transferwise.spyql.SpyqlTransactionDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SpyqlLoggingListener implements SpyqlDataSourceListener {
-	private static final Logger log = LoggerFactory.getLogger(SpyqlLoggingListener.class);
+    private static final Logger log = LoggerFactory.getLogger(SpyqlLoggingListener.class);
 
-	private AtomicLong connectionId = new AtomicLong(0L);
-	private AtomicLong transactionId = new AtomicLong(0L);
+    private AtomicLong connectionIdSequence = new AtomicLong(0L);
+    private AtomicLong transactionIdSequnce = new AtomicLong(0L);
 
-	@Override
-	public SpyqlConnectionListener onGetConnection(GetConnectionResult result) {
-		long conId = connectionId.incrementAndGet();
-		log.info("GET CONNECTION id: {}, result: {}", conId, result);
-		return new ConnectionListener(conId);
-	}
+    @Override
+    public SpyqlConnectionListener onGetConnection(GetConnectionEvent event) {
+        long conId = connectionIdSequence.incrementAndGet();
+        log.info("GET CONNECTION id: {}, result: {}", conId, event);
+        return new ConnectionListener(conId);
+    }
 
-	class ConnectionListener implements SpyqlConnectionListener {
-		long connectionId;
+    private class ConnectionListener implements SpyqlConnectionListener {
+        private long connectionId;
+        private SpyqlTransactionDefinition transactionDefinition;
+        private long transactionId;
 
-		public ConnectionListener(long connectionId) {
-			this.connectionId = connectionId;
-		}
+        public ConnectionListener(long connectionId) {
+            this.connectionId = connectionId;
+        }
 
-		@Override
-		public SpyqlTransactionListener onTransactionBegin(SpyqlTransactionDefinition transactionDefinition) {
-			if (!log.isInfoEnabled()) return null;
-			long txId = transactionId.incrementAndGet();
-			log.info("TRANSACTION BEGIN connectionId: {}, transactionId: {}, name: {}, readOnly {}, isolationLevel: {}",
-					connectionId, txId, transactionDefinition.getName(), transactionDefinition.getReadOnly(), transactionDefinition.getIsolationLevel());
-			return new TransactionListener(transactionDefinition, connectionId, txId);
-		}
+        @Override
+        public void onTransactionBegin(TransactionBeginEvent event) {
+            if (!log.isInfoEnabled()) {
+                return;
+            }
+            transactionDefinition = event.getTransactionDefinition();
+            transactionId = transactionIdSequnce.incrementAndGet();
+            log.info("TRANSACTION BEGIN connectionId: {}, transactionId: {}, name: {}, readOnly {}, isolationLevel: {}",
+                connectionId, transactionId, transactionDefinition.getName(), transactionDefinition.getReadOnly(), transactionDefinition.getIsolationLevel());
+        }
 
-		@Override
-		public void onStatementExecute(String sql, Long executionTimeNs) {
-			if (!log.isInfoEnabled()) return;
-			log.info("EXECUTE WITHOUT TRANSACTION connectionId: {}, transactionId: {}, sql: {}, after: {} ns", sql, executionTimeNs);
-		}
+        @Override
+        public void onStatementExecute(StatementExecuteEvent event) {
+            if (!log.isInfoEnabled()) {
+                return;
+            }
+            if (event.isInTransaction()) {
+                log.info("EXECUTE IN TRANSACTION connectionId: {}, transactionId: {}, sql: {}, after: {} ns", connectionId, transactionId, event.getSql(), event.getExecutionTimeNs());
+            } else {
+                log.info("EXECUTE WITHOUT TRANSACTION connectionId: {}, transactionId: {}, sql: {}, after: {} ns", event.getSql(), event.getExecutionTimeNs());
+            }
+        }
 
-		@Override
-		public void onClose() {
-			log.info("CLOSE CONNECTION connectionId: {}", connectionId);
-		}
-	}
+        @Override
+        public void onStatementExecuteFailure(StatementExecuteFailureEvent result) {
+            log.info("Exception was thrown: {} after: {} ns", result.getThrowable(), result.getExecutionTimeNs());
+        }
 
-	static class TransactionListener implements SpyqlTransactionListener {
-		SpyqlTransactionDefinition transactionDefinition;
-		long connectionId;
-		long transactionId;
+        @Override
+        public void onTransactionCommit(TransactionCommitEvent event) {
+            log.info("TRANSACTION COMMIT connectionId: {}, transactionId: {}, name: {}, after: {} ns", connectionId, transactionId,
+                transactionDefinition == null ? null : transactionDefinition.getName(), event.getExecutionTimeNs());
+        }
 
-		TransactionListener(SpyqlTransactionDefinition transactionDefinition, long connectionId, long transactionId) {
-			this.transactionDefinition = transactionDefinition;
-			this.connectionId = connectionId;
-			this.transactionId = transactionId;
-		}
+        @Override
+        public void onTransactionRollback(TransactionRollbackEvent event) {
+            log.info("TRANSACTION ROLLBACK connectionId: {}, transactionId: {}, name: {}, after: {} ns", connectionId, transactionId,
+                transactionDefinition == null ? null : transactionDefinition.getName(), event.getExecutionTimeNs());
+        }
 
-		@Override
-		public void onTransactionCommit(Long transactionExecutionTimeNs) {
-			log.info("TRANSACTION COMMIT connectionId: {}, transactionId: {}, name: {}, after: {} ns", connectionId, transactionId, transactionDefinition.getName(), transactionExecutionTimeNs);
-		}
 
-		@Override
-		public void onTransactionRollback(Long transactionExecutionTimeNs) {
-			log.info("TRANSACTION ROLLBACK connectionId: {}, transactionId: {}, name: {}, after: {} ns", connectionId, transactionId, transactionDefinition.getName(), transactionExecutionTimeNs);
-		}
-
-		@Override
-		public void onStatementExecute(String sql, Long executionTimeNs) {
-			log.info("EXECUTE IN TRANSACTION connectionId: {}, transactionId: {}, sql: {}, after: {} ns", connectionId, transactionId, sql, executionTimeNs);
-		}
-
-		@Override
-		public void onStatementFailure(String sql, Long executionTimeNs, Throwable e) {
-			log.info("Exception was thrown: {} after: {} ns", e, executionTimeNs);
-		}
-	}
+        @Override
+        public void onConnectionClose(ConnectionCloseEvent event) {
+            log.info("CLOSE CONNECTION connectionId: {}", connectionId);
+        }
+    }
 }

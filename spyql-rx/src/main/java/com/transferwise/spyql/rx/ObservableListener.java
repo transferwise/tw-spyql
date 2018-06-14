@@ -1,117 +1,68 @@
 package com.transferwise.spyql.rx;
 
-import com.transferwise.spyql.*;
-import com.transferwise.spyql.rx.events.*;
+import com.transferwise.spyql.event.GetConnectionEvent;
+import com.transferwise.spyql.event.GetConnectionFailureEvent;
+import com.transferwise.spyql.event.SpyqlEvent;
+import com.transferwise.spyql.listener.SpyqlConnectionListener;
+import com.transferwise.spyql.listener.SpyqlDataSourceListener;
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
 
-import java.util.concurrent.atomic.AtomicLong;
+public class ObservableListener extends Observable<SpyqlEvent> implements SpyqlDataSourceListener {
+    private static final int MAX_CONCURRENT_CONNECTIONS_DEFAULT = 5000;
 
-public class ObservableListener extends Observable<Event> implements SpyqlDataSourceListener {
-	private static final int MAX_CONCURRENT_TRANSACTIONS_DEFAULT = 5000;
-	private static final int MAX_CONCURRENT_CONNECTIONS_DEFAULT = 5000;
+    private Subject<SpyqlEvent> subject;
+    private int maxConcurrentConnections;
 
-	private Subject<Event> subject;
-	private AtomicLong atomicConnectionId = new AtomicLong(1L);
-	private AtomicLong atomicTransactionId = new AtomicLong(1L);
-	private int maxConcurrentConnections;
-	private int maxConcurrentTransactions;
+    public ObservableListener() {
+        this(MAX_CONCURRENT_CONNECTIONS_DEFAULT);
+    }
 
-	public ObservableListener() {
-		this(MAX_CONCURRENT_CONNECTIONS_DEFAULT, MAX_CONCURRENT_TRANSACTIONS_DEFAULT);
-	}
+    public ObservableListener(int maxConcurrentTransactions) {
+        this(maxConcurrentTransactions, PublishSubject.create());
+    }
 
-	public ObservableListener(int maxConcurrentConnections, int maxConcurrentTransactions) {
-		this(maxConcurrentConnections, maxConcurrentTransactions, PublishSubject.create());
-	}
+    public ObservableListener(int maxConcurrentConnections, Subject<SpyqlEvent> subject) {
+        this.subject = subject;
+        this.maxConcurrentConnections = maxConcurrentConnections;
+    }
 
-	public ObservableListener(int maxConcurrentConnections, int maxConcurrentTransactions, Subject<Event> subject) {
-		this.subject = subject;
-		this.maxConcurrentConnections = maxConcurrentConnections;
-		this.maxConcurrentTransactions = maxConcurrentTransactions;
-	}
+    @Override
+    protected void subscribeActual(Observer<? super SpyqlEvent> observer) {
+        subject.subscribe(observer);
+    }
 
-	@Override
-	public SpyqlConnectionListener onGetConnection(GetConnectionResult result) {
-		long connectionId = atomicConnectionId.getAndIncrement();
-		subject.onNext(new ConnectionAcquireEvent(connectionId, result));
-		return new ConnectionListener(connectionId);
-	}
+    public void attachListener(SpyqlDataSourceListener listener) {
+        subscribe(new ObserverToListenerAdapter(listener, maxConcurrentConnections));
+    }
 
-	@Override
-	protected void subscribeActual(Observer<? super Event> observer) {
-		subject.subscribe(observer);
-	}
+    public void attachAsyncListener(SpyqlDataSourceListener listener) {
+        this.observeOn(Schedulers.newThread())
+            .subscribe(new ObserverToListenerAdapter(listener, maxConcurrentConnections));
+    }
 
-	public void attachListener(SpyqlDataSourceListener listener) {
-		subscribe(new ObserverToListenerAdapter(listener, maxConcurrentConnections, maxConcurrentTransactions));
-	}
+    public void close() {
+        subject.onComplete();
+    }
 
-	public void attachAsyncListener(SpyqlDataSourceListener listener) {
-		this.observeOn(Schedulers.newThread())
-				.subscribe(new ObserverToListenerAdapter(listener, maxConcurrentConnections, maxConcurrentTransactions));
-	}
+    @Override
+    public SpyqlConnectionListener onGetConnection(GetConnectionEvent event) {
+        subject.onNext(event);
+        return new ConnectionListener();
+    }
 
-	public void close() {
-		subject.onComplete();
-	}
+    @Override
+    public void onGetConnectionFailure(GetConnectionFailureEvent event) {
+        subject.onNext(event);
+    }
 
-	class ConnectionListener implements SpyqlConnectionListener {
-		private long connectionId;
-
-		public ConnectionListener(long connectionId) {
-			this.connectionId = connectionId;
-		}
-
-		@Override
-		public SpyqlTransactionListener onTransactionBegin(SpyqlTransactionDefinition transactionDefinition) {
-			long transactionId = atomicTransactionId.getAndIncrement();
-			subject.onNext(new TransactionBeginEvent(connectionId, transactionId, transactionDefinition));
-			return new TransactionListener(connectionId, transactionId);
-		}
-
-		@Override
-		public void onStatementExecute(String sql, Long executionTimeNs) {
-			StatementExecuteEvent event = new StatementExecuteEvent(connectionId, sql, executionTimeNs);
-			subject.onNext(event);
-		}
-
-		@Override
-		public void onClose() {
-			subject.onNext(new ConnectionCloseEvent(connectionId));
-		}
-	}
-
-	class TransactionListener implements SpyqlTransactionListener {
-		private long connectionId;
-		private long transactionId;
-
-		TransactionListener(long connectionId, long transactionId) {
-			this.connectionId = connectionId;
-			this.transactionId = transactionId;
-		}
-
-		@Override
-		public void onTransactionCommit(Long transactionExecutionTimeNs) {
-			subject.onNext(new TransactionCommitEvent(connectionId, transactionId, transactionExecutionTimeNs));
-		}
-
-		@Override
-		public void onTransactionRollback(Long transactionExecutionTimeNs) {
-			subject.onNext(new TransactionRollbackEvent(connectionId, transactionId, transactionExecutionTimeNs));
-		}
-
-		@Override
-		public void onStatementExecute(String sql, Long executionTimeNs) {
-			subject.onNext(new TransactionalStatementExecuteEvent(connectionId, transactionId, sql, executionTimeNs));
-		}
-
-		@Override
-		public void onStatementFailure(String sql, Long executionTimeNs, Throwable e) {
-
-		}
-	}
+    class ConnectionListener implements SpyqlConnectionListener {
+        @Override
+        public void onEvent(SpyqlEvent event) {
+            subject.onNext(event);
+        }
+    }
 }

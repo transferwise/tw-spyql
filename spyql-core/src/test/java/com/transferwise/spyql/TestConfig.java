@@ -13,18 +13,18 @@ import javax.sql.DataSource;
 @Configuration
 class TestConfig {
 
-	@PostConstruct
-	void init() {
-		Logger root = (Logger)LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-		root.setLevel(Level.DEBUG);
-	}
+    @PostConstruct
+    void init() {
+        Logger root = (Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
+        root.setLevel(Level.DEBUG);
+    }
 
-	@Bean
-	DataSource dataSource() {
-		JdbcDataSource dataSource = new JdbcDataSource();
-		dataSource.setUrl("jdbc:h2:mem:db;DB_CLOSE_DELAY=-1");
-		dataSource.setUser("user");
-		dataSource.setPassword("password");
-		return dataSource;
-	}
+    @Bean
+    DataSource dataSource() {
+        JdbcDataSource dataSource = new JdbcDataSource();
+        dataSource.setUrl("jdbc:h2:mem:db;DB_CLOSE_DELAY=-1");
+        dataSource.setUser("user");
+        dataSource.setPassword("password");
+        return dataSource;
+    }
 }
