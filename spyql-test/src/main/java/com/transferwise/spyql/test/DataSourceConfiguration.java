@@ -1,10 +1,9 @@
 package com.transferwise.spyql.test;
 
-import com.transferwise.spyql.SpyqlDataSourceProxy;
-import com.transferwise.spyql.SpyqlException;
-import com.transferwise.spyql.SpyqlHelper;
+import com.transferwise.spyql.SpyqlDataSource;
 import com.transferwise.spyql.listerners.SpyqlLoggingListener;
 import com.transferwise.spyql.rx.ObservableListener;
+import com.transferwise.spyql.utils.SpyqlDataSourceUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
@@ -18,44 +17,44 @@ import java.sql.SQLException;
 
 @Configuration
 public class DataSourceConfiguration implements BeanPostProcessor {
-	private static final Logger log = LoggerFactory.getLogger(DataSourceConfiguration.class);
+    private static final Logger log = LoggerFactory.getLogger(DataSourceConfiguration.class);
 
-	@Bean
-	@Qualifier("synchronousLoggingListener")
-	public SpyqlLoggingListener synchronousLoggingListener() {
-		return new SpyqlLoggingListener();
-	}
+    @Bean
+    @Qualifier("synchronousLoggingListener")
+    public SpyqlLoggingListener synchronousLoggingListener() {
+        return new SpyqlLoggingListener();
+    }
 
-	@Bean
-	@Qualifier("asynchronousLoggingListener")
-	public SpyqlLoggingListener asynchronousLoggingListener() {
-		return new SpyqlLoggingListener();
-	}
+    @Bean
+    @Qualifier("asynchronousLoggingListener")
+    public SpyqlLoggingListener asynchronousLoggingListener() {
+        return new SpyqlLoggingListener();
+    }
 
-	@Bean
-	public ObservableListener rxListener(DataSource dataSource,
-										 @Qualifier("synchronousLoggingListener") SpyqlLoggingListener synchronousLoggingListener,
-										 @Qualifier("asynchronousLoggingListener") SpyqlLoggingListener asynchronousLoggingListener) throws SQLException, SpyqlException {
-		ObservableListener listener = new ObservableListener();
-		listener.attachListener(synchronousLoggingListener);
-		listener.attachAsyncListener(asynchronousLoggingListener);
-		SpyqlHelper.setDataSourceListener(dataSource, listener);
-		return listener;
-	}
+    @Bean
+    public ObservableListener rxListener(DataSource dataSource,
+                                         @Qualifier("synchronousLoggingListener") SpyqlLoggingListener synchronousLoggingListener,
+                                         @Qualifier("asynchronousLoggingListener") SpyqlLoggingListener asynchronousLoggingListener) throws SQLException {
+        ObservableListener listener = new ObservableListener();
+        listener.attachListener(synchronousLoggingListener);
+        listener.attachAsyncListener(asynchronousLoggingListener);
+        SpyqlDataSourceUtils.addDataSourceListener(dataSource, listener);
+        return listener;
+    }
 
-	@Override
-	public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-		return bean;
-	}
+    @Override
+    public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
+        return bean;
+    }
 
-	@Override
-	public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-		if (bean instanceof DataSource) {
-			log.info("Wrapping bean '{}' ({}) into SpyqlDataSourceProxy", beanName, bean.getClass().getName());
-			DataSource dataSource = (DataSource) bean;
-			return new SpyqlDataSourceProxy(dataSource);
-		}
-		return bean;
-	}
+    @Override
+    public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+        if (bean instanceof DataSource) {
+            log.info("Wrapping bean '{}' ({}) into SpyqlDataSourceProxy", beanName, bean.getClass().getName());
+            DataSource dataSource = (DataSource) bean;
+            return new SpyqlDataSource(dataSource);
+        }
+        return bean;
+    }
 
 }
