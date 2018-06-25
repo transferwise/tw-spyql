@@ -808,16 +808,6 @@ class SpyqlDataSourceSpec extends Specification {
             })
         and:
             thrown(RuntimeException)
-        when: 'Connection close fails'
-            connection.close()
-        then:
-            1 * originalConnection.close() >> { throw new RuntimeException("No electricity") }
-        and:
-            1 * connectionListener.onConnectionCloseFailure({ ConnectionCloseFailureEvent event ->
-                event.transactionId && event.throwable.message == "No electricity" && event.executionTimeNs > 0 && event.connectionId
-            })
-        and:
-            thrown(RuntimeException)
         when: 'Implicit transaction on auto commit fails'
             connection.setAutoCommit(true)
         then:
@@ -829,6 +819,16 @@ class SpyqlDataSourceSpec extends Specification {
             1 * connectionListener.onTransactionCommitFailure({ TransactionCommitFailureEvent event ->
                 event.transactionId && event.connectionId && event.executionTimeNs > 0 && event.throwable.message == "Power outage"
             })
+        when: 'Connection close fails'
+            connection.close()
+        then:
+            1 * originalConnection.close() >> { throw new RuntimeException("No electricity") }
+        and:
+            1 * connectionListener.onConnectionCloseFailure({ ConnectionCloseFailureEvent event ->
+                event.transactionId && event.throwable.message == "No electricity" && event.executionTimeNs > 0 && event.connectionId
+            })
+        and:
+            thrown(RuntimeException)
     }
 
     def "auto commit switch can trigger a commit of a transaction"() {
