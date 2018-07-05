@@ -31,6 +31,36 @@ class SpyqlDataSourceSpec extends Specification {
         spyqlDataSource.log = Mock(Logger)
     }
 
+    def "Spyql data source can be initialized in multiple ways" (){
+        given:
+            def originalDataSource = Mock(DataSource)
+            def dataSourceListener = Mock(SpyqlDataSourceListener)
+        when:
+            def dataSource = new SpyqlDataSource(originalDataSource)
+        then:
+            dataSource.getDatabaseName() == null
+            dataSource.dataSource == originalDataSource
+            dataSource.getDataSourceListeners().isEmpty()
+        when:
+            dataSource = new SpyqlDataSource(originalDataSource, "SuperDb")
+        then:
+            dataSource.getDatabaseName() == "SuperDb"
+            dataSource.dataSource == originalDataSource
+            dataSource.getDataSourceListeners().isEmpty()
+        when:
+            dataSource = new SpyqlDataSource(originalDataSource, "SuperDb", dataSourceListener)
+        then:
+            dataSource.getDatabaseName() == "SuperDb"
+            dataSource.dataSource == originalDataSource
+            dataSource.getDataSourceListeners()[0] == dataSourceListener
+        when:
+            dataSource = new SpyqlDataSource(originalDataSource, dataSourceListener)
+        then:
+            dataSource.getDatabaseName() == null
+            dataSource.dataSource == originalDataSource
+            dataSource.getDataSourceListeners()[0] == dataSourceListener
+    }
+
     def "getConnection calls original getConnection when no listener attached"() {
         given:
             setupSpyql(false)

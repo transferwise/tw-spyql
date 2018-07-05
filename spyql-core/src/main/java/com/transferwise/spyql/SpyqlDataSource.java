@@ -25,6 +25,9 @@ import java.util.logging.Logger;
 
 public class SpyqlDataSource implements DataSource {
     private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SpyqlDataSource.class);
+    @Getter
+    @Setter
+    private String databaseName;
     private DataSource dataSource;
     private SimpleThrottler errorLogThrottler;
     private ConnectionListenersHelper connectionListenersHelper;
@@ -37,19 +40,29 @@ public class SpyqlDataSource implements DataSource {
     @Getter
     private List<SpyqlDataSourceListener> dataSourceListeners = new ArrayList<>();
 
-    public SpyqlDataSource(DataSource dataSource) {
+    public SpyqlDataSource(DataSource dataSource, String databaseName, SpyqlDataSourceListener dataSourceListener){
         this.dataSource = dataSource;
+        this.databaseName = databaseName;
         this.errorLogThrottler = new SimpleThrottler(Duration.ofMinutes(1), 100);
         connectionListenersHelper = new ConnectionListenersHelper(errorLogThrottler);
+        addListener(dataSourceListener);
+    }
+    public SpyqlDataSource(DataSource dataSource) {
+        this(dataSource, null, null);
     }
 
     public SpyqlDataSource(DataSource dataSource, SpyqlDataSourceListener dataSourceListener) {
-        this(dataSource);
-        dataSourceListeners.add(dataSourceListener);
+        this(dataSource, null, dataSourceListener);
+    }
+
+    public SpyqlDataSource(DataSource dataSource, String databaseName) {
+        this(dataSource, databaseName, null);
     }
 
     public void addListener(SpyqlDataSourceListener dataSourceListener) {
-        dataSourceListeners.add(dataSourceListener);
+        if(dataSourceListener != null){
+            dataSourceListeners.add(dataSourceListener);
+        }
     }
 
     @Override
