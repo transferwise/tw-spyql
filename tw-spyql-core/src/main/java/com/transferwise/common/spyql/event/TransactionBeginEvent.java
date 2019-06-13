@@ -10,4 +10,5 @@ public class TransactionBeginEvent implements ConnectionEvent {
     private SpyqlTransactionDefinition transactionDefinition;
     private long connectionId;
     private long transactionId;
+    private boolean emptyTransaction;
 }

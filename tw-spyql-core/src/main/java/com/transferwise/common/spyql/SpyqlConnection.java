@@ -131,6 +131,9 @@ public class SpyqlConnection implements Connection {
     }
 
     protected void onCommit(long timeTakenNs, Throwable t) {
+        if (!isInTransaction()){
+            onTransactionBegin(true);
+        }
         if (t == null) {
             spyqlDataSource.onConnectionEvent(connectionListeners, new TransactionCommitEvent()
                 .setExecutionTimeNs(timeTakenNs)
@@ -148,6 +151,10 @@ public class SpyqlConnection implements Connection {
     }
 
     protected void onRollback(long timeTakenNs, Throwable t) {
+        if (!isInTransaction()){
+            onTransactionBegin(true);
+        }
+
         if (t == null) {
             spyqlDataSource.onConnectionEvent(connectionListeners, new TransactionRollbackEvent()
                 .setConnectionId(connectionId)
@@ -179,19 +186,20 @@ public class SpyqlConnection implements Connection {
         }
     }
 
-    protected void onTransactionBegin() {
+    protected void onTransactionBegin(boolean emptyTransaction) {
         transactionId = spyqlDataSource.nextTransactionId();
 
         spyqlDataSource.onConnectionEvent(connectionListeners, new TransactionBeginEvent()
             .setConnectionId(connectionId)
             .setTransactionId(transactionId)
+            .setEmptyTransaction(emptyTransaction)
             .setTransactionDefinition(spyqlDataSource.getTransactionDefinition()));
     }
 
     protected void onStatementExecute(long timeTakenNs, String sql, Throwable t) throws SQLException {
         if (t == null) {
             if (!isInTransaction() && !connection.getAutoCommit()) {
-                onTransactionBegin();
+                onTransactionBegin(false);
             }
             spyqlDataSource.onConnectionEvent(connectionListeners, new StatementExecuteEvent()
                 .setConnectionId(connectionId)

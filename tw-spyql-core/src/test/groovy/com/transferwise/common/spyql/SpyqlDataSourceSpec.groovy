@@ -17,6 +17,8 @@ class SpyqlDataSourceSpec extends Specification {
     Connection originalConnection
     PreparedStatement originalStatement
 
+    protected long transactionIdInBegin
+
     def setupSpyql(boolean attachListener = true) {
         originalDataSource = Mock(DataSource)
         if (attachListener) {
@@ -162,29 +164,33 @@ class SpyqlDataSourceSpec extends Specification {
             1 * connectionListener.onConnectionClose(_)
     }
 
-    def "when outside transaction commit does nothing"() {
+    def "when commit is called without transaction being created before, an empty transaction event is sent"() {
         given:
             setupSpyql()
-
         when:
             def connection = spyqlDataSource.getConnection()
         then:
             1 * originalDataSource.getConnection() >> originalConnection
         and:
             1 * listener.onGetConnection({ GetConnectionEvent success -> success.executionTimeNs > 0 }) >> connectionListener
-
         when:
             connection.commit()
         then:
             1 * originalConnection.commit()
+        and: 'new empty transaction was registered'
+            1 * connectionListener.onTransactionBegin({ TransactionBeginEvent event ->
+                transactionIdInBegin = event.getTransactionId()
+                event.isEmptyTransaction()
+            })
+        and: 'transaction commit event is sent'
+            1 * connectionListener.onTransactionCommit({ TransactionCommitEvent event -> event.getTransactionId() == transactionIdInBegin })
+        and:
             0 * connectionListener.onStatementExecute(_, _)
-            0 * connectionListener.onTransactionBegin(_)
     }
 
-    def "when outside transaction rollback does nothing"() {
+    def "when rollback is called without transaction being created before, an empty transaction event is sent"() {
         given:
             setupSpyql()
-
         when:
             def connection = spyqlDataSource.getConnection()
         then:
@@ -196,8 +202,15 @@ class SpyqlDataSourceSpec extends Specification {
             connection.rollback()
         then:
             1 * originalConnection.rollback()
+        and: 'new empty transaction was registered'
+            1 * connectionListener.onTransactionBegin({ TransactionBeginEvent event ->
+                transactionIdInBegin = event.getTransactionId()
+                event.isEmptyTransaction()
+            })
+        and: 'transaction commit event is sent'
+            1 * connectionListener.onTransactionRollback({ TransactionRollbackEvent event -> event.getTransactionId() == transactionIdInBegin })
+        and:
             0 * connectionListener.onStatementExecute(_, _)
-            0 * connectionListener.onTransactionBegin(_)
     }
 
     def "when outside transaction SpyqlListener.onStatementExecute is called when statement is executed"() {
@@ -250,8 +263,8 @@ class SpyqlDataSourceSpec extends Specification {
         then:
             1 * originalConnection.getAutoCommit() >> false
             1 * originalStatement.execute() >> true
-            1 * connectionListener.onTransactionBegin({ TransactionBeginEvent result ->
-                !result.transactionDefinition.readOnly
+            1 * connectionListener.onTransactionBegin({ TransactionBeginEvent event ->
+                !event.transactionDefinition.readOnly && !event.emptyTransaction
             })
     }
 
@@ -369,7 +382,9 @@ class SpyqlDataSourceSpec extends Specification {
         then: "checks if transaction is required"
             1 * originalConnection.getAutoCommit() >> false
         and: "transaction is started"
-            1 * connectionListener.onTransactionBegin(_)
+            1 * connectionListener.onTransactionBegin({ TransactionBeginEvent event ->
+                !event.emptyTransaction
+            })
         and: "original execute is called"
             1 * originalStatement.execute() >> true
 
@@ -534,7 +549,7 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalStatement.execute() >> true
         and:
             1 * connectionListener.onStatementExecute(_) >> {
-                throw new Exception("Foo Bar")
+                throw new RuntimeException("Foo Bar")
             }
         and:
             0 * _
@@ -564,7 +579,7 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalConnection.getAutoCommit() >> false
         and: "calls onTransactionBegin which throws exception"
             1 * connectionListener.onTransactionBegin(_) >> {
-                throw new Exception("Foo Bar")
+                throw new RuntimeException("Foo Bar")
             }
         and:
             1 * connectionListener.onStatementExecute(_)
@@ -599,7 +614,7 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalStatement.execute() >> true
         and:
             1 * connectionListener.onStatementExecute(_) >> {
-                throw new Exception("Foo Bar")
+                throw new RuntimeException("Foo Bar")
             }
             1 * connectionListener.onEvent(_)
         and:
@@ -639,7 +654,7 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalConnection.commit()
         and:
             1 * connectionListener.onTransactionCommit(_) >> {
-                throw new Exception("Foo Bar")
+                throw new RuntimeException("Foo Bar")
             }
         and:
             0 * _
@@ -678,7 +693,7 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalConnection.rollback()
         and:
             1 * connectionListener.onTransactionRollback(_) >> {
-                throw new Exception("Foo Bar")
+                throw new RuntimeException("Foo Bar")
             }
         and:
             0 * _
