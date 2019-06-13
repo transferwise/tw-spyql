@@ -1,0 +1,96 @@
+apply plugin: 'maven-publish'
+/*
+   TODO: Needs additional Circle setup
+   apply plugin: 'signing'
+*/
+
+ext.artifactoryUser = project.hasProperty("artifactoryUser") ? project.artifactoryUser : System.env.ARTIFACTORY_USER as String
+ext.artifactoryPassword = project.hasProperty("artifactoryPassword") ? project.artifactoryPassword : System.env.ARTIFACTORY_PASSWORD as String
+ext.projectDescription = 'Transferwise Database Connection Spy - allows to start listening various JDBC events, especially events around transactions.'
+ext.projectGitHubRepoName = 'tw-spyql'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+            artifactId = projectArtifactName
+            artifact sourcesJar
+            artifact javadocJar
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+
+            pom {
+                name = projectName
+                description = projectDescription
+                url = "https://github.com/transferwise/${projectGitHubRepoName}"
+                packaging = "jar"
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0, Copyright 2019 TransferWise Ltd'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'xhook'
+                        name = 'Dmitry Zhukov'
+                        email = "dmitry.zhukov@transferwise.com"
+                        organization = "Transferwise Ltd"
+                        organizationUrl = "https://github.com/transferwise"
+                    }
+                    developer {
+                        id = 'onukristo'
+                        name = 'Kristo Kuusküll'
+                        email = "kristo.kuuskull@transferwise.com"
+                        organization = "Transferwise Ltd"
+                        organizationUrl = "https://github.com/transferwise"
+                    }
+
+                }
+                scm {
+                    connection = "scm:git:git://github.com/transferwise/${projectGitHubRepoName}.git"
+                    developerConnection = "scm:git:ssh://github.com:transferwise/${projectGitHubRepoName}.git"
+                    url = "https://github.com/transferwise/${projectGitHubRepoName}"
+                }
+            }
+        }
+    }
+
+/*
+    TODO: Needs additional Circle setup
+    signing {
+        sign publishing.publications.mavenJava
+    }
+*/
+
+    javadoc {
+        if (JavaVersion.current().isJava9Compatible()) {
+            options.addBooleanOption('html5', true)
+        }
+    }
+
+    repositories {
+        maven {
+            url "https://arti.tw.ee/artifactory/libs-${project.version.endsWith('-SNAPSHOT') ? 'snapshot' : 'release'}-local"
+            credentials {
+                username = artifactoryUser
+                password = artifactoryPassword
+            }
+        }
+        /*
+        TODO: Needs additional Circle setup
+        maven {
+            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+            credentials {
+                username sonatypeUsername
+                password sonatypePassword
+            }
+        }*/
+    }
+}
