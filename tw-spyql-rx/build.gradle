@@ -1,0 +1,23 @@
+import com.github.spotbugs.SpotBugsTask
+
+ext.projectArtifactName = 'tw-spyql-rx'
+
+apply from: '../build.common.gradle'
+apply from: '../build.publish.gradle'
+
+dependencies {
+    implementation project(':tw-spyql-core')
+
+    implementation "org.slf4j:slf4j-api"
+    implementation 'io.reactivex.rxjava2:rxjava'
+
+    testImplementation project(path: ':tw-spyql-core', configuration: 'testArchives')
+    testImplementation 'net.bytebuddy:byte-buddy'
+}
+
+tasks.withType(SpotBugsTask) {
+    reports {
+        xml.enabled false
+        html.enabled true
+    }
+}

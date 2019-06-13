@@ -1,0 +1,89 @@
+apply plugin: 'java-library'
+apply plugin: 'groovy'
+apply plugin: 'com.github.spotbugs'
+apply plugin: 'io.spring.dependency-management'
+apply plugin: 'checkstyle'
+
+group = 'com.transferwise.common'
+
+sourceCompatibility = '1.8'
+targetCompatibility = '1.8'
+
+ext.projectName = 'Transferwise Database Connection Spy'
+
+jar {
+    manifest {
+        attributes(
+            "Implementation-Title": "$projectName",
+            "Implementation-Version": version
+        )
+    }
+}
+
+compileJava {
+    options.encoding = 'utf-8'
+    options.compilerArgs << '-parameters'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.boot:spring-boot-dependencies:2.1.5.RELEASE"
+    }
+}
+
+dependencies {
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    compileOnly 'org.projectlombok:lombok'
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.12'
+
+    testAnnotationProcessor 'org.projectlombok:lombok'
+    testCompileOnly 'org.projectlombok:lombok'
+
+    testImplementation 'junit:junit:4.12'
+    testImplementation 'com.h2database:h2'
+    testImplementation "org.springframework:spring-context"
+    testImplementation "org.springframework:spring-test"
+    testImplementation "org.spockframework:spock-core:1.3-groovy-2.5"
+    testImplementation 'org.slf4j:slf4j-simple'
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    archiveClassifier = 'sources'
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    archiveClassifier = 'javadoc'
+}
+
+test {
+    testLogging {
+        events "passed", "skipped", "failed", "standardError"
+        showStackTraces = true
+        exceptionFormat = 'full'
+    }
+}
+
+spotbugs {
+    sourceSets = [sourceSets.main]
+    effort = "max"
+}
+
+idea {
+    module {
+        excludeDirs += file('logs')
+        excludeDirs += file('gradle')
+        excludeDirs += file('build')
+        excludeDirs += file('target')
+        excludeDirs += file('.idea')
+        excludeDirs += file('.gradle')
+    }
+}

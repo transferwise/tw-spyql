@@ -1,0 +1,31 @@
+import com.github.spotbugs.SpotBugsTask
+
+ext.projectArtifactName = 'tw-spyql-core'
+
+apply from: '../build.common.gradle'
+apply from: '../build.publish.gradle'
+
+dependencies {
+    implementation "org.springframework:spring-tx"
+    implementation "org.slf4j:slf4j-api"
+}
+
+configurations {
+    testArchives.extendsFrom(testCompile)
+}
+
+task jarTest(type: Jar, dependsOn: project.testClasses) {
+    from project.sourceSets.test.output
+    archiveClassifier = 'test'
+}
+
+artifacts {
+    testArchives project.jarTest
+}
+
+tasks.withType(SpotBugsTask) {
+    reports {
+        xml.enabled false
+        html.enabled true
+    }
+}
