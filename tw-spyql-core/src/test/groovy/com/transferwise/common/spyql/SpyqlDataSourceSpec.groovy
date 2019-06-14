@@ -179,9 +179,8 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalConnection.commit()
         and: 'new empty transaction was registered'
             1 * connectionListener.onTransactionBegin({ TransactionBeginEvent event ->
-                transactionIdInBegin = event.getTransactionId()
                 event.isEmptyTransaction()
-            })
+            }) >> { transactionIdInBegin = it[0].getTransactionId() }
         and: 'transaction commit event is sent'
             1 * connectionListener.onTransactionCommit({ TransactionCommitEvent event -> event.getTransactionId() == transactionIdInBegin })
         and:
@@ -204,9 +203,8 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalConnection.rollback()
         and: 'new empty transaction was registered'
             1 * connectionListener.onTransactionBegin({ TransactionBeginEvent event ->
-                transactionIdInBegin = event.getTransactionId()
                 event.isEmptyTransaction()
-            })
+            }) >> { transactionIdInBegin = it[0].getTransactionId() }
         and: 'transaction commit event is sent'
             1 * connectionListener.onTransactionRollback({ TransactionRollbackEvent event -> event.getTransactionId() == transactionIdInBegin })
         and:
