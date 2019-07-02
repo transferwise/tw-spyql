@@ -31,6 +31,7 @@ public class SpyqlDataSource implements DataSource {
     @Getter
     @Setter
     private String databaseName;
+    @Getter
     private DataSource dataSource;
     private SimpleThrottler errorLogThrottler;
     private ConnectionListenersHelper connectionListenersHelper;
