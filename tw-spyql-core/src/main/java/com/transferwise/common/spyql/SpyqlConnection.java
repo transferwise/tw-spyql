@@ -2,6 +2,7 @@ package com.transferwise.common.spyql;
 
 import com.transferwise.common.spyql.event.ConnectionCloseEvent;
 import com.transferwise.common.spyql.event.ConnectionCloseFailureEvent;
+import com.transferwise.common.spyql.event.ResultSetNextRowsEvent;
 import com.transferwise.common.spyql.event.StatementExecuteEvent;
 import com.transferwise.common.spyql.event.StatementExecuteFailureEvent;
 import com.transferwise.common.spyql.event.TransactionBeginEvent;
@@ -240,7 +241,7 @@ public class SpyqlConnection implements Connection {
         .setTransactionDefinition(spyqlDataSource.getTransactionDefinition()));
   }
 
-  protected void onStatementExecute(long timeTakenNs, String sql, Throwable t) throws SQLException {
+  protected void onStatementExecute(long timeTakenNs, String sql, long affectedRowsCount, Throwable t) throws SQLException {
     if (t == null) {
       if (!isInTransaction() && !connection.getAutoCommit()) {
         onTransactionBegin(false);
@@ -249,6 +250,7 @@ public class SpyqlConnection implements Connection {
           .setConnectionId(connectionId)
           .setTransactionId(transactionId)
           .setExecutionTimeNs(timeTakenNs)
+          .setAffectedRowsCount(affectedRowsCount)
           .setSql(sql));
     } else {
       spyqlDataSource.onConnectionEvent(connectionListeners, new StatementExecuteFailureEvent()
@@ -258,6 +260,13 @@ public class SpyqlConnection implements Connection {
           .setSql(sql)
           .setThrowable(t));
     }
+  }
+
+  protected void onNextRecords(long recordsCount) {
+    spyqlDataSource.onConnectionEvent(connectionListeners, new ResultSetNextRowsEvent()
+        .setConnectionId(connectionId)
+        .setTransactionId(transactionId)
+        .setRowsCount(recordsCount));
   }
 
   //// Default behaviour ////

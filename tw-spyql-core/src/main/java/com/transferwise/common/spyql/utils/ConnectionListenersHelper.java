@@ -3,6 +3,7 @@ package com.transferwise.common.spyql.utils;
 import com.transferwise.common.spyql.event.ConnectionCloseEvent;
 import com.transferwise.common.spyql.event.ConnectionCloseFailureEvent;
 import com.transferwise.common.spyql.event.ConnectionEvent;
+import com.transferwise.common.spyql.event.ResultSetNextRowsEvent;
 import com.transferwise.common.spyql.event.StatementExecuteEvent;
 import com.transferwise.common.spyql.event.StatementExecuteFailureEvent;
 import com.transferwise.common.spyql.event.TransactionBeginEvent;
@@ -53,6 +54,8 @@ public class ConnectionListenersHelper {
         listener.onConnectionClose((ConnectionCloseEvent) event);
       } else if (event instanceof ConnectionCloseFailureEvent) {
         listener.onConnectionCloseFailure((ConnectionCloseFailureEvent) event);
+      } else if (event instanceof ResultSetNextRowsEvent) {
+        listener.onResultSetNextRecords((ResultSetNextRowsEvent) event);
       }
       listener.onEvent(event);
     });

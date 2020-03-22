@@ -37,7 +37,7 @@ public class SpyqlPreparedStatement extends SpyqlStatement implements PreparedSt
 
   @Override
   public ResultSet executeQuery() throws SQLException {
-    return executeStatement(sql, () -> preparedStatement.executeQuery());
+    return new SpyqlResultSet(executeStatement(sql, () -> preparedStatement.executeQuery()), spyqlConnection);
   }
 
   @Override
@@ -50,9 +50,6 @@ public class SpyqlPreparedStatement extends SpyqlStatement implements PreparedSt
   public boolean execute() throws SQLException {
     return executeStatement(sql, () -> preparedStatement.execute());
   }
-
-  //// Default behaviour ////
-
 
   @Override
   public void setNull(int parameterIndex, int sqlType) throws SQLException {
