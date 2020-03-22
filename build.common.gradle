@@ -1,21 +1,25 @@
 apply plugin: 'java-library'
 apply plugin: 'groovy'
 apply plugin: 'com.github.spotbugs'
-apply plugin: 'io.spring.dependency-management'
 apply plugin: 'checkstyle'
 
 group = 'com.transferwise.common'
 
-sourceCompatibility = '1.8'
-targetCompatibility = '1.8'
-
 ext.projectName = 'Transferwise Database Connection Spy'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+    withSourcesJar()
+    withJavadocJar()
+}
+
 
 jar {
     manifest {
         attributes(
-            "Implementation-Title": "$projectName",
-            "Implementation-Version": version
+                "Implementation-Title": "$projectName",
+                "Implementation-Version": version
         )
     }
 }
@@ -30,13 +34,15 @@ repositories {
     mavenLocal()
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.springframework.boot:spring-boot-dependencies:2.1.5.RELEASE"
-    }
-}
+ext.springBootVersion = "2.2.5.RELEASE"
 
 dependencies {
+    annotationProcessor platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    testAnnotationProcessor platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    compileOnly platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    testImplementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+
     annotationProcessor 'org.projectlombok:lombok'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
@@ -44,24 +50,14 @@ dependencies {
     compileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.12'
 
     testAnnotationProcessor 'org.projectlombok:lombok'
-    testCompileOnly 'org.projectlombok:lombok'
 
+    testImplementation 'org.projectlombok:lombok'
     testImplementation 'junit:junit:4.12'
     testImplementation 'com.h2database:h2'
     testImplementation "org.springframework:spring-context"
     testImplementation "org.springframework:spring-test"
     testImplementation "org.spockframework:spock-core:1.3-groovy-2.5"
     testImplementation 'org.slf4j:slf4j-simple'
-}
-
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allJava
-    archiveClassifier = 'sources'
-}
-
-task javadocJar(type: Jar) {
-    from javadoc
-    archiveClassifier = 'javadoc'
 }
 
 test {
@@ -72,9 +68,35 @@ test {
     }
 }
 
-spotbugs {
-    sourceSets = [sourceSets.main]
+spotbugsMain {
+    reports {
+        html {
+            enabled = true
+        }
+        xml {
+            enabled = false
+        }
+    }
+}
+
+spotbugs{
     effort = "max"
+    spotbugsTest.enabled = false
+}
+
+tasks.withType(Checkstyle) {
+    config = resources.text.fromFile(file('../google_checks.xml'))
+
+    maxWarnings = 0
+
+    reports {
+        xml.enabled false
+        html.enabled true
+    }
+}
+
+checkstyle {
+    checkstyleTest.enabled = false
 }
 
 idea {

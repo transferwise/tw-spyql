@@ -12,57 +12,59 @@ import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
 
 public class ObservableListener extends Observable<SpyqlEvent> implements SpyqlDataSourceListener {
-    private static final int MAX_CONCURRENT_CONNECTIONS_DEFAULT = 5000;
 
-    private Subject<SpyqlEvent> subject;
-    private int maxConcurrentConnections;
+  private static final int MAX_CONCURRENT_CONNECTIONS_DEFAULT = 5000;
 
-    public ObservableListener() {
-        this(MAX_CONCURRENT_CONNECTIONS_DEFAULT);
-    }
+  private Subject<SpyqlEvent> subject;
+  private int maxConcurrentConnections;
 
-    public ObservableListener(int maxConcurrentTransactions) {
-        this(maxConcurrentTransactions, PublishSubject.create());
-    }
+  public ObservableListener() {
+    this(MAX_CONCURRENT_CONNECTIONS_DEFAULT);
+  }
 
-    public ObservableListener(int maxConcurrentConnections, Subject<SpyqlEvent> subject) {
-        this.subject = subject;
-        this.maxConcurrentConnections = maxConcurrentConnections;
-    }
+  public ObservableListener(int maxConcurrentTransactions) {
+    this(maxConcurrentTransactions, PublishSubject.create());
+  }
+
+  public ObservableListener(int maxConcurrentConnections, Subject<SpyqlEvent> subject) {
+    this.subject = subject;
+    this.maxConcurrentConnections = maxConcurrentConnections;
+  }
+
+  @Override
+  protected void subscribeActual(Observer<? super SpyqlEvent> observer) {
+    subject.subscribe(observer);
+  }
+
+  public void attachListener(SpyqlDataSourceListener listener) {
+    subscribe(new ObserverToListenerAdapter(listener, maxConcurrentConnections));
+  }
+
+  public void attachAsyncListener(SpyqlDataSourceListener listener) {
+    this.observeOn(Schedulers.newThread())
+        .subscribe(new ObserverToListenerAdapter(listener, maxConcurrentConnections));
+  }
+
+  public void close() {
+    subject.onComplete();
+  }
+
+  @Override
+  public SpyqlConnectionListener onGetConnection(GetConnectionEvent event) {
+    subject.onNext(event);
+    return new ConnectionListener();
+  }
+
+  @Override
+  public void onGetConnectionFailure(GetConnectionFailureEvent event) {
+    subject.onNext(event);
+  }
+
+  class ConnectionListener implements SpyqlConnectionListener {
 
     @Override
-    protected void subscribeActual(Observer<? super SpyqlEvent> observer) {
-        subject.subscribe(observer);
+    public void onEvent(SpyqlEvent event) {
+      subject.onNext(event);
     }
-
-    public void attachListener(SpyqlDataSourceListener listener) {
-        subscribe(new ObserverToListenerAdapter(listener, maxConcurrentConnections));
-    }
-
-    public void attachAsyncListener(SpyqlDataSourceListener listener) {
-        this.observeOn(Schedulers.newThread())
-            .subscribe(new ObserverToListenerAdapter(listener, maxConcurrentConnections));
-    }
-
-    public void close() {
-        subject.onComplete();
-    }
-
-    @Override
-    public SpyqlConnectionListener onGetConnection(GetConnectionEvent event) {
-        subject.onNext(event);
-        return new ConnectionListener();
-    }
-
-    @Override
-    public void onGetConnectionFailure(GetConnectionFailureEvent event) {
-        subject.onNext(event);
-    }
-
-    class ConnectionListener implements SpyqlConnectionListener {
-        @Override
-        public void onEvent(SpyqlEvent event) {
-            subject.onNext(event);
-        }
-    }
+  }
 }

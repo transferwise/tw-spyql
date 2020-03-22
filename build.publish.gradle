@@ -14,8 +14,6 @@ publishing {
         mavenJava(MavenPublication) {
             from components.java
             artifactId = projectArtifactName
-            artifact sourcesJar
-            artifact javadocJar
             versionMapping {
                 usage('java-api') {
                     fromResolutionOf('runtimeClasspath')
