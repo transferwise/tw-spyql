@@ -5,13 +5,11 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class StatementExecuteEvent implements ConnectionEvent {
+public class ResultSetNextRowsEvent implements ConnectionEvent {
 
-  private long executionTimeNs;
   private long connectionId;
-  private long affectedRowsCount;
   private Long transactionId;
-  private String sql;
+  private long rowsCount;
 
   public boolean isInTransaction() {
     return transactionId != null;

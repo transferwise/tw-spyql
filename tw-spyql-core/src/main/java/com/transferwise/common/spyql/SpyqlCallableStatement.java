@@ -29,8 +29,6 @@ public class SpyqlCallableStatement extends SpyqlPreparedStatement implements Ca
     this.callableStatement = callableStatement;
   }
 
-  //// Default behaviour ////
-
   @Override
   public Array getArray(int parameterIndex) throws java.sql.SQLException {
     return this.callableStatement.getArray(parameterIndex);

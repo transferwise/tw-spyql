@@ -2,6 +2,7 @@ package com.transferwise.common.spyql.listener;
 
 import com.transferwise.common.spyql.event.ConnectionCloseEvent;
 import com.transferwise.common.spyql.event.ConnectionCloseFailureEvent;
+import com.transferwise.common.spyql.event.ResultSetNextRowsEvent;
 import com.transferwise.common.spyql.event.SpyqlEvent;
 import com.transferwise.common.spyql.event.StatementExecuteEvent;
 import com.transferwise.common.spyql.event.StatementExecuteFailureEvent;
@@ -43,5 +44,7 @@ public interface SpyqlConnectionListener {
   default void onConnectionCloseFailure(ConnectionCloseFailureEvent event) {
   }
 
+  default void onResultSetNextRecords(ResultSetNextRowsEvent event) {
+  }
 }
 

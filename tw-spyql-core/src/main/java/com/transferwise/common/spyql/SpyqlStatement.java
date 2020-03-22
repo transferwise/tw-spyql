@@ -18,6 +18,32 @@ public class SpyqlStatement implements Statement {
     this.spyqlConnection = spyqlConnection;
   }
 
+  protected <T> T executeStatement(String sql, CallableWithSqlException<T> callable) throws SQLException {
+    long startTimeNs = System.nanoTime();
+    try {
+      T result = callable.call();
+      long rowsAffected = 0;
+      if (result instanceof Integer) {
+        rowsAffected = (Integer) result;
+      } else if (result instanceof Long) {
+        rowsAffected = (Long) result;
+      } else if (result instanceof int[]) {
+        for (int i : (int[]) result) {
+          rowsAffected += i;
+        }
+      } else if (result instanceof long[]) {
+        for (long i : (long[]) result) {
+          rowsAffected += i;
+        }
+      }
+      spyqlConnection.onStatementExecute(System.nanoTime() - startTimeNs, sql, rowsAffected, null);
+      return result;
+    } catch (Throwable t) {
+      spyqlConnection.onStatementExecute(System.nanoTime() - startTimeNs, sql, 0, t);
+      throw t;
+    }
+  }
+
   @Override
   public int executeUpdate(String sql) throws java.sql.SQLException {
     return executeStatement(sql, () -> statement.executeUpdate(sql));
@@ -72,7 +98,7 @@ public class SpyqlStatement implements Statement {
 
   @Override
   public ResultSet executeQuery(String sql) throws java.sql.SQLException {
-    return executeStatement(sql, () -> statement.executeQuery(sql));
+    return new SpyqlResultSet(executeStatement(sql, () -> statement.executeQuery(sql)), spyqlConnection);
   }
 
   @Override
@@ -100,21 +126,6 @@ public class SpyqlStatement implements Statement {
     return executeStatement(batchSql, () -> statement.executeBatch());
   }
 
-  //// Helper methods ////
-
-  protected <T> T executeStatement(String sql, CallableWithSqlException<T> callable) throws SQLException {
-    long startTimeNs = System.nanoTime();
-    try {
-      T result = callable.call();
-      spyqlConnection.onStatementExecute(System.nanoTime() - startTimeNs, sql, null);
-      return result;
-    } catch (Throwable t) {
-      spyqlConnection.onStatementExecute(System.nanoTime() - startTimeNs, sql, t);
-      throw t;
-    }
-  }
-
-  //// Default behaviour ////
   @Override
   public void setEscapeProcessing(boolean enable) throws java.sql.SQLException {
     statement.setEscapeProcessing(enable);
@@ -167,7 +178,7 @@ public class SpyqlStatement implements Statement {
 
   @Override
   public ResultSet getGeneratedKeys() throws java.sql.SQLException {
-    return statement.getGeneratedKeys();
+    return new SpyqlResultSet(statement.getGeneratedKeys(), spyqlConnection);
   }
 
   @Override
@@ -192,7 +203,7 @@ public class SpyqlStatement implements Statement {
 
   @Override
   public ResultSet getResultSet() throws java.sql.SQLException {
-    return statement.getResultSet();
+    return new SpyqlResultSet(statement.getResultSet(), spyqlConnection);
   }
 
   @Override
