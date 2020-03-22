@@ -1,5 +1,3 @@
-import com.github.spotbugs.SpotBugsTask
-
 ext.projectArtifactName = 'tw-spyql-core'
 
 apply from: '../build.common.gradle'
@@ -21,11 +19,4 @@ task jarTest(type: Jar, dependsOn: project.testClasses) {
 
 artifacts {
     testArchives project.jarTest
-}
-
-tasks.withType(SpotBugsTask) {
-    reports {
-        xml.enabled false
-        html.enabled true
-    }
 }

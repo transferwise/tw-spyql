@@ -1,5 +1,3 @@
-import com.github.spotbugs.SpotBugsTask
-
 ext.projectArtifactName = 'tw-spyql-rx'
 
 apply from: '../build.common.gradle'
@@ -13,11 +11,4 @@ dependencies {
 
     testImplementation project(path: ':tw-spyql-core', configuration: 'testArchives')
     testImplementation 'net.bytebuddy:byte-buddy'
-}
-
-tasks.withType(SpotBugsTask) {
-    reports {
-        xml.enabled false
-        html.enabled true
-    }
 }
