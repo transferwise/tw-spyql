@@ -75,85 +75,13 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
-  public boolean getBoolean(int columnIndex) throws SQLException {
-    return resultSet.getBoolean(columnIndex);
-  }
-
-  @Override
-  public byte getByte(int columnIndex) throws SQLException {
-    return resultSet.getByte(columnIndex);
-  }
-
-  @Override
-  public short getShort(int columnIndex) throws SQLException {
-    return resultSet.getShort(columnIndex);
-  }
-
-  @Override
-  public int getInt(int columnIndex) throws SQLException {
-    return resultSet.getInt(columnIndex);
-  }
-
-  @Override
-  public long getLong(int columnIndex) throws SQLException {
-    return resultSet.getLong(columnIndex);
-  }
-
-  @Override
-  public float getFloat(int columnIndex) throws SQLException {
-    return resultSet.getFloat(columnIndex);
-  }
-
-  @Override
-  public double getDouble(int columnIndex) throws SQLException {
-    return resultSet.getDouble(columnIndex);
-  }
-
-  @Override
-  @Deprecated
-  public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
-    return resultSet.getBigDecimal(columnIndex, scale);
-  }
-
-  @Override
-  public byte[] getBytes(int columnIndex) throws SQLException {
-    return resultSet.getBytes(columnIndex);
-  }
-
-  @Override
-  public Date getDate(int columnIndex) throws SQLException {
-    return resultSet.getDate(columnIndex);
-  }
-
-  @Override
-  public Time getTime(int columnIndex) throws SQLException {
-    return resultSet.getTime(columnIndex);
-  }
-
-  @Override
-  public Timestamp getTimestamp(int columnIndex) throws SQLException {
-    return resultSet.getTimestamp(columnIndex);
-  }
-
-  @Override
-  public InputStream getAsciiStream(int columnIndex) throws SQLException {
-    return resultSet.getAsciiStream(columnIndex);
-  }
-
-  @Override
-  @Deprecated
-  public InputStream getUnicodeStream(int columnIndex) throws SQLException {
-    return resultSet.getUnicodeStream(columnIndex);
-  }
-
-  @Override
-  public InputStream getBinaryStream(int columnIndex) throws SQLException {
-    return resultSet.getBinaryStream(columnIndex);
-  }
-
-  @Override
   public String getString(String columnLabel) throws SQLException {
     return resultSet.getString(columnLabel);
+  }
+
+  @Override
+  public boolean getBoolean(int columnIndex) throws SQLException {
+    return resultSet.getBoolean(columnIndex);
   }
 
   @Override
@@ -162,8 +90,18 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public byte getByte(int columnIndex) throws SQLException {
+    return resultSet.getByte(columnIndex);
+  }
+
+  @Override
   public byte getByte(String columnLabel) throws SQLException {
     return resultSet.getByte(columnLabel);
+  }
+
+  @Override
+  public short getShort(int columnIndex) throws SQLException {
+    return resultSet.getShort(columnIndex);
   }
 
   @Override
@@ -172,8 +110,18 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public int getInt(int columnIndex) throws SQLException {
+    return resultSet.getInt(columnIndex);
+  }
+
+  @Override
   public int getInt(String columnLabel) throws SQLException {
     return resultSet.getInt(columnLabel);
+  }
+
+  @Override
+  public long getLong(int columnIndex) throws SQLException {
+    return resultSet.getLong(columnIndex);
   }
 
   @Override
@@ -182,8 +130,18 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public float getFloat(int columnIndex) throws SQLException {
+    return resultSet.getFloat(columnIndex);
+  }
+
+  @Override
   public float getFloat(String columnLabel) throws SQLException {
     return resultSet.getFloat(columnLabel);
+  }
+
+  @Override
+  public double getDouble(int columnIndex) throws SQLException {
+    return resultSet.getDouble(columnIndex);
   }
 
   @Override
@@ -193,8 +151,29 @@ public class SpyqlResultSet implements ResultSet {
 
   @Override
   @Deprecated
+  public BigDecimal getBigDecimal(int columnIndex, int scale) throws SQLException {
+    return resultSet.getBigDecimal(columnIndex, scale);
+  }
+
+  @Override
+  public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
+    return resultSet.getBigDecimal(columnIndex);
+  }
+
+  @Override
+  public BigDecimal getBigDecimal(String columnLabel) throws SQLException {
+    return resultSet.getBigDecimal(columnLabel);
+  }
+
+  @Override
+  @Deprecated
   public BigDecimal getBigDecimal(String columnLabel, int scale) throws SQLException {
     return resultSet.getBigDecimal(columnLabel, scale);
+  }
+
+  @Override
+  public byte[] getBytes(int columnIndex) throws SQLException {
+    return resultSet.getBytes(columnIndex);
   }
 
   @Override
@@ -203,8 +182,38 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public Date getDate(int columnIndex) throws SQLException {
+    return resultSet.getDate(columnIndex);
+  }
+
+  @Override
+  public Date getDate(int columnIndex, Calendar cal) throws SQLException {
+    return resultSet.getDate(columnIndex, cal);
+  }
+
+  @Override
+  public Date getDate(String columnLabel, Calendar cal) throws SQLException {
+    return resultSet.getDate(columnLabel, cal);
+  }
+
+  @Override
   public Date getDate(String columnLabel) throws SQLException {
     return resultSet.getDate(columnLabel);
+  }
+
+  @Override
+  public Time getTime(int columnIndex) throws SQLException {
+    return resultSet.getTime(columnIndex);
+  }
+
+  @Override
+  public Time getTime(int columnIndex, Calendar cal) throws SQLException {
+    return resultSet.getTime(columnIndex, cal);
+  }
+
+  @Override
+  public Time getTime(String columnLabel, Calendar cal) throws SQLException {
+    return resultSet.getTime(columnLabel, cal);
   }
 
   @Override
@@ -213,13 +222,43 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public Timestamp getTimestamp(int columnIndex) throws SQLException {
+    return resultSet.getTimestamp(columnIndex);
+  }
+
+  @Override
+  public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
+    return resultSet.getTimestamp(columnIndex, cal);
+  }
+
+  @Override
+  public Timestamp getTimestamp(String columnLabel, Calendar cal) throws SQLException {
+    return resultSet.getTimestamp(columnLabel, cal);
+  }
+
+  @Override
   public Timestamp getTimestamp(String columnLabel) throws SQLException {
     return resultSet.getTimestamp(columnLabel);
   }
 
   @Override
+  public InputStream getBinaryStream(int columnIndex) throws SQLException {
+    return resultSet.getBinaryStream(columnIndex);
+  }
+
+  @Override
+  public InputStream getBinaryStream(String columnLabel) throws SQLException {
+    return resultSet.getBinaryStream(columnLabel);
+  }
+
+  @Override
   public InputStream getAsciiStream(String columnLabel) throws SQLException {
     return resultSet.getAsciiStream(columnLabel);
+  }
+
+  @Override
+  public InputStream getAsciiStream(int columnIndex) throws SQLException {
+    return resultSet.getAsciiStream(columnIndex);
   }
 
   @Override
@@ -229,8 +268,9 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
-  public InputStream getBinaryStream(String columnLabel) throws SQLException {
-    return resultSet.getBinaryStream(columnLabel);
+  @Deprecated
+  public InputStream getUnicodeStream(int columnIndex) throws SQLException {
+    return resultSet.getUnicodeStream(columnIndex);
   }
 
   @Override
@@ -264,6 +304,26 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public <T> T getObject(String columnLabel, Class<T> type) throws SQLException {
+    return resultSet.getObject(columnLabel, type);
+  }
+
+  @Override
+  public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
+    return resultSet.getObject(columnIndex, type);
+  }
+
+  @Override
+  public Object getObject(String columnLabel, Map<String, Class<?>> map) throws SQLException {
+    return resultSet.getObject(columnLabel, map);
+  }
+
+  @Override
+  public Object getObject(int columnIndex, Map<String, Class<?>> map) throws SQLException {
+    return resultSet.getObject(columnIndex, map);
+  }
+
+  @Override
   public int findColumn(String columnLabel) throws SQLException {
     return resultSet.findColumn(columnLabel);
   }
@@ -276,16 +336,6 @@ public class SpyqlResultSet implements ResultSet {
   @Override
   public Reader getCharacterStream(String columnLabel) throws SQLException {
     return resultSet.getCharacterStream(columnLabel);
-  }
-
-  @Override
-  public BigDecimal getBigDecimal(int columnIndex) throws SQLException {
-    return resultSet.getBigDecimal(columnIndex);
-  }
-
-  @Override
-  public BigDecimal getBigDecimal(String columnLabel) throws SQLException {
-    return resultSet.getBigDecimal(columnLabel);
   }
 
   @Override
@@ -403,98 +453,13 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
-  public void updateBoolean(int columnIndex, boolean x) throws SQLException {
-    resultSet.updateBoolean(columnIndex, x);
-  }
-
-  @Override
-  public void updateByte(int columnIndex, byte x) throws SQLException {
-    resultSet.updateByte(columnIndex, x);
-  }
-
-  @Override
-  public void updateShort(int columnIndex, short x) throws SQLException {
-    resultSet.updateShort(columnIndex, x);
-  }
-
-  @Override
-  public void updateInt(int columnIndex, int x) throws SQLException {
-    resultSet.updateInt(columnIndex, x);
-  }
-
-  @Override
-  public void updateLong(int columnIndex, long x) throws SQLException {
-    resultSet.updateLong(columnIndex, x);
-  }
-
-  @Override
-  public void updateFloat(int columnIndex, float x) throws SQLException {
-    resultSet.updateFloat(columnIndex, x);
-  }
-
-  @Override
-  public void updateDouble(int columnIndex, double x) throws SQLException {
-    resultSet.updateDouble(columnIndex, x);
-  }
-
-  @Override
-  public void updateBigDecimal(int columnIndex, BigDecimal x) throws SQLException {
-    resultSet.updateBigDecimal(columnIndex, x);
-  }
-
-  @Override
-  public void updateString(int columnIndex, String x) throws SQLException {
-    resultSet.updateString(columnIndex, x);
-  }
-
-  @Override
-  public void updateBytes(int columnIndex, byte[] x) throws SQLException {
-    resultSet.updateBytes(columnIndex, x);
-  }
-
-  @Override
-  public void updateDate(int columnIndex, Date x) throws SQLException {
-    resultSet.updateDate(columnIndex, x);
-  }
-
-  @Override
-  public void updateTime(int columnIndex, Time x) throws SQLException {
-    resultSet.updateTime(columnIndex, x);
-  }
-
-  @Override
-  public void updateTimestamp(int columnIndex, Timestamp x) throws SQLException {
-    resultSet.updateTimestamp(columnIndex, x);
-  }
-
-  @Override
-  public void updateAsciiStream(int columnIndex, InputStream x, int length) throws SQLException {
-    resultSet.updateAsciiStream(columnIndex, x, length);
-  }
-
-  @Override
-  public void updateBinaryStream(int columnIndex, InputStream x, int length) throws SQLException {
-    resultSet.updateBinaryStream(columnIndex, x, length);
-  }
-
-  @Override
-  public void updateCharacterStream(int columnIndex, Reader x, int length) throws SQLException {
-    resultSet.updateCharacterStream(columnIndex, x, length);
-  }
-
-  @Override
-  public void updateObject(int columnIndex, Object x, int scaleOrLength) throws SQLException {
-    resultSet.updateObject(columnIndex, x, scaleOrLength);
-  }
-
-  @Override
-  public void updateObject(int columnIndex, Object x) throws SQLException {
-    resultSet.updateObject(columnIndex, x);
-  }
-
-  @Override
   public void updateNull(String columnLabel) throws SQLException {
     resultSet.updateNull(columnLabel);
+  }
+
+  @Override
+  public void updateBoolean(int columnIndex, boolean x) throws SQLException {
+    resultSet.updateBoolean(columnIndex, x);
   }
 
   @Override
@@ -503,8 +468,18 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public void updateByte(int columnIndex, byte x) throws SQLException {
+    resultSet.updateByte(columnIndex, x);
+  }
+
+  @Override
   public void updateByte(String columnLabel, byte x) throws SQLException {
     resultSet.updateByte(columnLabel, x);
+  }
+
+  @Override
+  public void updateShort(int columnIndex, short x) throws SQLException {
+    resultSet.updateShort(columnIndex, x);
   }
 
   @Override
@@ -513,8 +488,18 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public void updateInt(int columnIndex, int x) throws SQLException {
+    resultSet.updateInt(columnIndex, x);
+  }
+
+  @Override
   public void updateInt(String columnLabel, int x) throws SQLException {
     resultSet.updateInt(columnLabel, x);
+  }
+
+  @Override
+  public void updateLong(int columnIndex, long x) throws SQLException {
+    resultSet.updateLong(columnIndex, x);
   }
 
   @Override
@@ -523,8 +508,18 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public void updateFloat(int columnIndex, float x) throws SQLException {
+    resultSet.updateFloat(columnIndex, x);
+  }
+
+  @Override
   public void updateFloat(String columnLabel, float x) throws SQLException {
     resultSet.updateFloat(columnLabel, x);
+  }
+
+  @Override
+  public void updateDouble(int columnIndex, double x) throws SQLException {
+    resultSet.updateDouble(columnIndex, x);
   }
 
   @Override
@@ -533,8 +528,18 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public void updateBigDecimal(int columnIndex, BigDecimal x) throws SQLException {
+    resultSet.updateBigDecimal(columnIndex, x);
+  }
+
+  @Override
   public void updateBigDecimal(String columnLabel, BigDecimal x) throws SQLException {
     resultSet.updateBigDecimal(columnLabel, x);
+  }
+
+  @Override
+  public void updateString(int columnIndex, String x) throws SQLException {
+    resultSet.updateString(columnIndex, x);
   }
 
   @Override
@@ -543,8 +548,18 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public void updateBytes(int columnIndex, byte[] x) throws SQLException {
+    resultSet.updateBytes(columnIndex, x);
+  }
+
+  @Override
   public void updateBytes(String columnLabel, byte[] x) throws SQLException {
     resultSet.updateBytes(columnLabel, x);
+  }
+
+  @Override
+  public void updateDate(int columnIndex, Date x) throws SQLException {
+    resultSet.updateDate(columnIndex, x);
   }
 
   @Override
@@ -553,8 +568,18 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public void updateTime(int columnIndex, Time x) throws SQLException {
+    resultSet.updateTime(columnIndex, x);
+  }
+
+  @Override
   public void updateTime(String columnLabel, Time x) throws SQLException {
     resultSet.updateTime(columnLabel, x);
+  }
+
+  @Override
+  public void updateTimestamp(int columnIndex, Timestamp x) throws SQLException {
+    resultSet.updateTimestamp(columnIndex, x);
   }
 
   @Override
@@ -563,8 +588,58 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public void updateAsciiStream(int columnIndex, InputStream x, int length) throws SQLException {
+    resultSet.updateAsciiStream(columnIndex, x, length);
+  }
+
+  @Override
+  public void updateAsciiStream(int columnIndex, InputStream x, long length) throws SQLException {
+    resultSet.updateAsciiStream(columnIndex, x, length);
+  }
+
+  @Override
   public void updateAsciiStream(String columnLabel, InputStream x, int length) throws SQLException {
     resultSet.updateAsciiStream(columnLabel, x, length);
+  }
+
+  @Override
+  public void updateAsciiStream(String columnLabel, InputStream x, long length) throws SQLException {
+    resultSet.updateAsciiStream(columnLabel, x, length);
+  }
+
+  @Override
+  public void updateAsciiStream(String columnLabel, InputStream x) throws SQLException {
+    resultSet.updateAsciiStream(columnLabel, x);
+  }
+
+  @Override
+  public void updateAsciiStream(int columnIndex, InputStream x) throws SQLException {
+    resultSet.updateAsciiStream(columnIndex, x);
+  }
+
+  @Override
+  public void updateBinaryStream(int columnIndex, InputStream x, int length) throws SQLException {
+    resultSet.updateBinaryStream(columnIndex, x, length);
+  }
+
+  @Override
+  public void updateBinaryStream(String columnLabel, InputStream x) throws SQLException {
+    resultSet.updateBinaryStream(columnLabel, x);
+  }
+
+  @Override
+  public void updateBinaryStream(int columnIndex, InputStream x) throws SQLException {
+    resultSet.updateBinaryStream(columnIndex, x);
+  }
+
+  @Override
+  public void updateBinaryStream(String columnLabel, InputStream x, long length) throws SQLException {
+    resultSet.updateBinaryStream(columnLabel, x, length);
+  }
+
+  @Override
+  public void updateBinaryStream(int columnIndex, InputStream x, long length) throws SQLException {
+    resultSet.updateBinaryStream(columnIndex, x, length);
   }
 
   @Override
@@ -573,8 +648,28 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
-  public void updateCharacterStream(String columnLabel, Reader reader, int length) throws SQLException {
-    resultSet.updateCharacterStream(columnLabel, reader, length);
+  public void updateObject(int columnIndex, Object x, int scaleOrLength) throws SQLException {
+    resultSet.updateObject(columnIndex, x, scaleOrLength);
+  }
+
+  @Override
+  public void updateObject(int columnIndex, Object x, SQLType targetSqlType, int scaleOrLength) throws SQLException {
+    resultSet.updateObject(columnIndex, x, targetSqlType, scaleOrLength);
+  }
+
+  @Override
+  public void updateObject(String columnLabel, Object x, SQLType targetSqlType, int scaleOrLength) throws SQLException {
+    resultSet.updateObject(columnLabel, x, targetSqlType, scaleOrLength);
+  }
+
+  @Override
+  public void updateObject(int columnIndex, Object x, SQLType targetSqlType) throws SQLException {
+    resultSet.updateObject(columnIndex, x, targetSqlType);
+  }
+
+  @Override
+  public void updateObject(String columnLabel, Object x, SQLType targetSqlType) throws SQLException {
+    resultSet.updateObject(columnLabel, x, targetSqlType);
   }
 
   @Override
@@ -585,6 +680,11 @@ public class SpyqlResultSet implements ResultSet {
   @Override
   public void updateObject(String columnLabel, Object x) throws SQLException {
     resultSet.updateObject(columnLabel, x);
+  }
+
+  @Override
+  public void updateObject(int columnIndex, Object x) throws SQLException {
+    resultSet.updateObject(columnIndex, x);
   }
 
   @Override
@@ -628,38 +728,18 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
-  public Object getObject(int columnIndex, Map<String, Class<?>> map) throws SQLException {
-    return resultSet.getObject(columnIndex, map);
-  }
-
-  @Override
   public Ref getRef(int columnIndex) throws SQLException {
     return resultSet.getRef(columnIndex);
   }
 
   @Override
-  public Blob getBlob(int columnIndex) throws SQLException {
-    return resultSet.getBlob(columnIndex);
-  }
-
-  @Override
-  public Clob getClob(int columnIndex) throws SQLException {
-    return resultSet.getClob(columnIndex);
-  }
-
-  @Override
-  public Array getArray(int columnIndex) throws SQLException {
-    return resultSet.getArray(columnIndex);
-  }
-
-  @Override
-  public Object getObject(String columnLabel, Map<String, Class<?>> map) throws SQLException {
-    return resultSet.getObject(columnLabel, map);
-  }
-
-  @Override
   public Ref getRef(String columnLabel) throws SQLException {
     return resultSet.getRef(columnLabel);
+  }
+
+  @Override
+  public Blob getBlob(int columnIndex) throws SQLException {
+    return resultSet.getBlob(columnIndex);
   }
 
   @Override
@@ -673,38 +753,18 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public Clob getClob(int columnIndex) throws SQLException {
+    return resultSet.getClob(columnIndex);
+  }
+
+  @Override
+  public Array getArray(int columnIndex) throws SQLException {
+    return resultSet.getArray(columnIndex);
+  }
+
+  @Override
   public Array getArray(String columnLabel) throws SQLException {
     return resultSet.getArray(columnLabel);
-  }
-
-  @Override
-  public Date getDate(int columnIndex, Calendar cal) throws SQLException {
-    return resultSet.getDate(columnIndex, cal);
-  }
-
-  @Override
-  public Date getDate(String columnLabel, Calendar cal) throws SQLException {
-    return resultSet.getDate(columnLabel, cal);
-  }
-
-  @Override
-  public Time getTime(int columnIndex, Calendar cal) throws SQLException {
-    return resultSet.getTime(columnIndex, cal);
-  }
-
-  @Override
-  public Time getTime(String columnLabel, Calendar cal) throws SQLException {
-    return resultSet.getTime(columnLabel, cal);
-  }
-
-  @Override
-  public Timestamp getTimestamp(int columnIndex, Calendar cal) throws SQLException {
-    return resultSet.getTimestamp(columnIndex, cal);
-  }
-
-  @Override
-  public Timestamp getTimestamp(String columnLabel, Calendar cal) throws SQLException {
-    return resultSet.getTimestamp(columnLabel, cal);
   }
 
   @Override
@@ -738,6 +798,26 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
+  public void updateBlob(int columnIndex, InputStream inputStream, long length) throws SQLException {
+    resultSet.updateBlob(columnIndex, inputStream, length);
+  }
+
+  @Override
+  public void updateBlob(String columnLabel, InputStream inputStream, long length) throws SQLException {
+    resultSet.updateBlob(columnLabel, inputStream, length);
+  }
+
+  @Override
+  public void updateBlob(int columnIndex, InputStream inputStream) throws SQLException {
+    resultSet.updateBlob(columnIndex, inputStream);
+  }
+
+  @Override
+  public void updateBlob(String columnLabel, InputStream inputStream) throws SQLException {
+    resultSet.updateBlob(columnLabel, inputStream);
+  }
+
+  @Override
   public void updateClob(int columnIndex, Clob x) throws SQLException {
     resultSet.updateClob(columnIndex, x);
   }
@@ -745,6 +825,26 @@ public class SpyqlResultSet implements ResultSet {
   @Override
   public void updateClob(String columnLabel, Clob x) throws SQLException {
     resultSet.updateClob(columnLabel, x);
+  }
+
+  @Override
+  public void updateClob(int columnIndex, Reader reader) throws SQLException {
+    resultSet.updateClob(columnIndex, reader);
+  }
+
+  @Override
+  public void updateClob(String columnLabel, Reader reader) throws SQLException {
+    resultSet.updateClob(columnLabel, reader);
+  }
+
+  @Override
+  public void updateClob(int columnIndex, Reader reader, long length) throws SQLException {
+    resultSet.updateClob(columnIndex, reader, length);
+  }
+
+  @Override
+  public void updateClob(String columnLabel, Reader reader, long length) throws SQLException {
+    resultSet.updateClob(columnLabel, reader, length);
   }
 
   @Override
@@ -788,23 +888,43 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
-  public void updateNString(int columnIndex, String nString) throws SQLException {
-    resultSet.updateNString(columnIndex, nString);
+  public void updateNString(int columnIndex, String string) throws SQLException {
+    resultSet.updateNString(columnIndex, string);
   }
 
   @Override
-  public void updateNString(String columnLabel, String nString) throws SQLException {
-    resultSet.updateNString(columnLabel, nString);
+  public void updateNString(String columnLabel, String string) throws SQLException {
+    resultSet.updateNString(columnLabel, string);
   }
 
   @Override
-  public void updateNClob(int columnIndex, NClob nClob) throws SQLException {
-    resultSet.updateNClob(columnIndex, nClob);
+  public void updateNClob(int columnIndex, NClob clob) throws SQLException {
+    resultSet.updateNClob(columnIndex, clob);
   }
 
   @Override
-  public void updateNClob(String columnLabel, NClob nClob) throws SQLException {
-    resultSet.updateNClob(columnLabel, nClob);
+  public void updateNClob(String columnLabel, NClob clob) throws SQLException {
+    resultSet.updateNClob(columnLabel, clob);
+  }
+
+  @Override
+  public void updateNClob(int columnIndex, Reader reader) throws SQLException {
+    resultSet.updateNClob(columnIndex, reader);
+  }
+
+  @Override
+  public void updateNClob(String columnLabel, Reader reader) throws SQLException {
+    resultSet.updateNClob(columnLabel, reader);
+  }
+
+  @Override
+  public void updateNClob(int columnIndex, Reader reader, long length) throws SQLException {
+    resultSet.updateNClob(columnIndex, reader, length);
+  }
+
+  @Override
+  public void updateNClob(String columnLabel, Reader reader, long length) throws SQLException {
+    resultSet.updateNClob(columnLabel, reader, length);
   }
 
   @Override
@@ -868,66 +988,6 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
-  public void updateAsciiStream(int columnIndex, InputStream x, long length) throws SQLException {
-    resultSet.updateAsciiStream(columnIndex, x, length);
-  }
-
-  @Override
-  public void updateBinaryStream(int columnIndex, InputStream x, long length) throws SQLException {
-    resultSet.updateBinaryStream(columnIndex, x, length);
-  }
-
-  @Override
-  public void updateCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
-    resultSet.updateCharacterStream(columnIndex, x, length);
-  }
-
-  @Override
-  public void updateAsciiStream(String columnLabel, InputStream x, long length) throws SQLException {
-    resultSet.updateAsciiStream(columnLabel, x, length);
-  }
-
-  @Override
-  public void updateBinaryStream(String columnLabel, InputStream x, long length) throws SQLException {
-    resultSet.updateBinaryStream(columnLabel, x, length);
-  }
-
-  @Override
-  public void updateCharacterStream(String columnLabel, Reader reader, long length) throws SQLException {
-    resultSet.updateCharacterStream(columnLabel, reader, length);
-  }
-
-  @Override
-  public void updateBlob(int columnIndex, InputStream inputStream, long length) throws SQLException {
-    resultSet.updateBlob(columnIndex, inputStream, length);
-  }
-
-  @Override
-  public void updateBlob(String columnLabel, InputStream inputStream, long length) throws SQLException {
-    resultSet.updateBlob(columnLabel, inputStream, length);
-  }
-
-  @Override
-  public void updateClob(int columnIndex, Reader reader, long length) throws SQLException {
-    resultSet.updateClob(columnIndex, reader, length);
-  }
-
-  @Override
-  public void updateClob(String columnLabel, Reader reader, long length) throws SQLException {
-    resultSet.updateClob(columnLabel, reader, length);
-  }
-
-  @Override
-  public void updateNClob(int columnIndex, Reader reader, long length) throws SQLException {
-    resultSet.updateNClob(columnIndex, reader, length);
-  }
-
-  @Override
-  public void updateNClob(String columnLabel, Reader reader, long length) throws SQLException {
-    resultSet.updateNClob(columnLabel, reader, length);
-  }
-
-  @Override
   public void updateNCharacterStream(int columnIndex, Reader x) throws SQLException {
     resultSet.updateNCharacterStream(columnIndex, x);
   }
@@ -938,28 +998,8 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
-  public void updateAsciiStream(int columnIndex, InputStream x) throws SQLException {
-    resultSet.updateAsciiStream(columnIndex, x);
-  }
-
-  @Override
-  public void updateBinaryStream(int columnIndex, InputStream x) throws SQLException {
-    resultSet.updateBinaryStream(columnIndex, x);
-  }
-
-  @Override
   public void updateCharacterStream(int columnIndex, Reader x) throws SQLException {
     resultSet.updateCharacterStream(columnIndex, x);
-  }
-
-  @Override
-  public void updateAsciiStream(String columnLabel, InputStream x) throws SQLException {
-    resultSet.updateAsciiStream(columnLabel, x);
-  }
-
-  @Override
-  public void updateBinaryStream(String columnLabel, InputStream x) throws SQLException {
-    resultSet.updateBinaryStream(columnLabel, x);
   }
 
   @Override
@@ -968,63 +1008,23 @@ public class SpyqlResultSet implements ResultSet {
   }
 
   @Override
-  public void updateBlob(int columnIndex, InputStream inputStream) throws SQLException {
-    resultSet.updateBlob(columnIndex, inputStream);
+  public void updateCharacterStream(String columnLabel, Reader reader, long length) throws SQLException {
+    resultSet.updateCharacterStream(columnLabel, reader, length);
   }
 
   @Override
-  public void updateBlob(String columnLabel, InputStream inputStream) throws SQLException {
-    resultSet.updateBlob(columnLabel, inputStream);
+  public void updateCharacterStream(int columnIndex, Reader x, long length) throws SQLException {
+    resultSet.updateCharacterStream(columnIndex, x, length);
   }
 
   @Override
-  public void updateClob(int columnIndex, Reader reader) throws SQLException {
-    resultSet.updateClob(columnIndex, reader);
+  public void updateCharacterStream(String columnLabel, Reader reader, int length) throws SQLException {
+    resultSet.updateCharacterStream(columnLabel, reader, length);
   }
 
   @Override
-  public void updateClob(String columnLabel, Reader reader) throws SQLException {
-    resultSet.updateClob(columnLabel, reader);
-  }
-
-  @Override
-  public void updateNClob(int columnIndex, Reader reader) throws SQLException {
-    resultSet.updateNClob(columnIndex, reader);
-  }
-
-  @Override
-  public void updateNClob(String columnLabel, Reader reader) throws SQLException {
-    resultSet.updateNClob(columnLabel, reader);
-  }
-
-  @Override
-  public <T> T getObject(int columnIndex, Class<T> type) throws SQLException {
-    return resultSet.getObject(columnIndex, type);
-  }
-
-  @Override
-  public <T> T getObject(String columnLabel, Class<T> type) throws SQLException {
-    return resultSet.getObject(columnLabel, type);
-  }
-
-  @Override
-  public void updateObject(int columnIndex, Object x, SQLType targetSqlType, int scaleOrLength) throws SQLException {
-    resultSet.updateObject(columnIndex, x, targetSqlType, scaleOrLength);
-  }
-
-  @Override
-  public void updateObject(String columnLabel, Object x, SQLType targetSqlType, int scaleOrLength) throws SQLException {
-    resultSet.updateObject(columnLabel, x, targetSqlType, scaleOrLength);
-  }
-
-  @Override
-  public void updateObject(int columnIndex, Object x, SQLType targetSqlType) throws SQLException {
-    resultSet.updateObject(columnIndex, x, targetSqlType);
-  }
-
-  @Override
-  public void updateObject(String columnLabel, Object x, SQLType targetSqlType) throws SQLException {
-    resultSet.updateObject(columnLabel, x, targetSqlType);
+  public void updateCharacterStream(int columnIndex, Reader x, int length) throws SQLException {
+    resultSet.updateCharacterStream(columnIndex, x, length);
   }
 
   @Override
