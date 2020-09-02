@@ -30,11 +30,13 @@ compileJava {
 }
 
 repositories {
-    mavenCentral()
+    maven {
+        setUrl("https://arti.tw.ee/artifactory/libs-release")
+    }
     mavenLocal()
 }
 
-ext.springBootVersion = "2.2.5.RELEASE"
+ext.springBootVersion = "2.3.3.RELEASE"
 
 dependencies {
     annotationProcessor platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
