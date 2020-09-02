@@ -8,10 +8,10 @@ import lombok.experimental.Accessors;
 public class ResultSetNextRowsEvent implements ConnectionEvent {
 
   private long connectionId;
-  private Long transactionId;
+  private SpyqlTransaction transaction;
   private long rowsCount;
 
   public boolean isInTransaction() {
-    return transactionId != null;
+    return transaction != null;
   }
 }

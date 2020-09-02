@@ -179,10 +179,10 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalConnection.commit()
         and: 'new empty transaction was registered'
             1 * connectionListener.onTransactionBegin({ TransactionBeginEvent event ->
-                event.isEmptyTransaction()
-            }) >> { transactionIdInBegin = it[0].getTransactionId() }
+                event.getTransaction().isEmpty()
+            }) >> { transactionIdInBegin = it[0].transaction.id }
         and: 'transaction commit event is sent'
-            1 * connectionListener.onTransactionCommit({ TransactionCommitEvent event -> event.getTransactionId() == transactionIdInBegin })
+            1 * connectionListener.onTransactionCommit({ TransactionCommitEvent event -> event.transaction.id == transactionIdInBegin })
         and:
             0 * connectionListener.onStatementExecute(_, _)
     }
@@ -203,10 +203,10 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalConnection.rollback()
         and: 'new empty transaction was registered'
             1 * connectionListener.onTransactionBegin({ TransactionBeginEvent event ->
-                event.isEmptyTransaction()
-            }) >> { transactionIdInBegin = it[0].getTransactionId() }
+                event.transaction.isEmpty()
+            }) >> { transactionIdInBegin = it[0].transaction.id }
         and: 'transaction commit event is sent'
-            1 * connectionListener.onTransactionRollback({ TransactionRollbackEvent event -> event.getTransactionId() == transactionIdInBegin })
+            1 * connectionListener.onTransactionRollback({ TransactionRollbackEvent event -> event.transaction.id == transactionIdInBegin })
         and:
             0 * connectionListener.onStatementExecute(_, _)
     }
@@ -235,7 +235,7 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalStatement.execute() >> true
             0 * connectionListener.onTransactionBegin(_)
             1 * connectionListener.onStatementExecute({ StatementExecuteEvent result ->
-                result.sql == "SELECT 1" && result.transactionId == null && result.executionTimeNs > 0
+                result.sql == "SELECT 1" && result.transaction == null && result.executionTimeNs > 0
             })
     }
 
@@ -262,7 +262,7 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalConnection.getAutoCommit() >> false
             1 * originalStatement.execute() >> true
             1 * connectionListener.onTransactionBegin({ TransactionBeginEvent event ->
-                !event.transactionDefinition.readOnly && !event.emptyTransaction
+                !event.transaction.definition.readOnly && !event.transaction.empty
             })
     }
 
@@ -338,12 +338,12 @@ class SpyqlDataSourceSpec extends Specification {
             1 * connectionListener.onTransactionBegin(_)
         and: "SpyqlTransactionListener.onStatementExecute is called"
             1 * connectionListener.onStatementExecute({ StatementExecuteEvent result ->
-                result.sql == "SELECT 1" && result.transactionId != null && result.executionTimeNs > 0
+                result.sql == "SELECT 1" && result.transaction != null && result.executionTimeNs > 0
             })
         when: "the same statement is executed"
             statement.execute()
         then: "SpyqlTransactionListener.onStatementExecute is called"
-            1 * connectionListener.onStatementExecute({ it -> it.transactionId != null })
+            1 * connectionListener.onStatementExecute({ it -> it.transaction != null })
         and: "onTransactionBegin is not called"
             0 * connectionListener.onTransactionBegin(_)
 
@@ -381,7 +381,7 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalConnection.getAutoCommit() >> false
         and: "transaction is started"
             1 * connectionListener.onTransactionBegin({ TransactionBeginEvent event ->
-                !event.emptyTransaction
+                !event.transaction.empty
             })
         and: "original execute is called"
             1 * originalStatement.execute() >> true
@@ -437,7 +437,7 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalStatement.execute() >> true
         and: "calls onStatementExecute outside of transaction"
             1 * connectionListener.onStatementExecute({ StatementExecuteEvent result ->
-                result.transactionId == null
+                result.transaction == null
             })
             1 * connectionListener.onEvent(_)
         and:
@@ -519,7 +519,7 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalStatement.execute() >> true
         and: "calls onStatementExecute outside of transaction"
             1 * connectionListener.onStatementExecute({ StatementExecuteEvent result ->
-                result.transactionId == null
+                result.transaction == null
             })
     }
 
@@ -822,7 +822,7 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalStatement.executeQuery() >> { throw new RuntimeException("You shall not pass!") }
         and:
             1 * connectionListener.onStatementExecuteFailure({ StatementExecuteFailureEvent event ->
-                event.transactionId == null && event.executionTimeNs > 0 && event.throwable.message == "You shall not pass!"
+                event.transaction == null && event.executionTimeNs > 0 && event.throwable.message == "You shall not pass!"
             })
             0 * connectionListener.onTransactionBegin(_)
         and:
@@ -837,7 +837,7 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalConnection.commit() >> { throw new RuntimeException("You shall not!") }
         and:
             1 * connectionListener.onTransactionCommitFailure({ TransactionCommitFailureEvent event ->
-                event.transactionId && event.throwable.message == "You shall not!" && event.executionTimeNs > 0 && event.connectionId
+                event.transaction.id && event.throwable.message == "You shall not!" && event.executionTimeNs > 0 && event.connectionId
             })
         and:
             thrown(RuntimeException)
@@ -847,7 +847,7 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalConnection.rollback() >> { throw new RuntimeException("Massive failure") }
         and:
             1 * connectionListener.onTransactionRollbackFailure({ TransactionRollbackFailureEvent event ->
-                event.transactionId && event.throwable.message == "Massive failure" && event.executionTimeNs > 0 && event.connectionId
+                event.transaction.id && event.throwable.message == "Massive failure" && event.executionTimeNs > 0 && event.connectionId
             })
         and:
             thrown(RuntimeException)
@@ -860,7 +860,7 @@ class SpyqlDataSourceSpec extends Specification {
             thrown(RuntimeException)
         and:
             1 * connectionListener.onTransactionCommitFailure({ TransactionCommitFailureEvent event ->
-                event.transactionId && event.connectionId && event.executionTimeNs > 0 && event.throwable.message == "Power outage"
+                event.transaction.id && event.connectionId && event.executionTimeNs > 0 && event.throwable.message == "Power outage"
             })
         when: 'Connection close fails'
             connection.close()
@@ -868,7 +868,7 @@ class SpyqlDataSourceSpec extends Specification {
             1 * originalConnection.close() >> { throw new RuntimeException("No electricity") }
         and:
             1 * connectionListener.onConnectionCloseFailure({ ConnectionCloseFailureEvent event ->
-                event.transactionId && event.throwable.message == "No electricity" && event.executionTimeNs > 0 && event.connectionId
+                event.transaction.id && event.throwable.message == "No electricity" && event.executionTimeNs > 0 && event.connectionId
             })
         and:
             thrown(RuntimeException)

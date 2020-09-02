@@ -43,7 +43,7 @@ public class SpyqlLoggingListener implements SpyqlDataSourceListener {
       if (!log.isInfoEnabled()) {
         return;
       }
-      transactionDefinition = event.getTransactionDefinition();
+      transactionDefinition = event.getTransaction().getDefinition();
       transactionId = transactionIdSequnce.incrementAndGet();
       log.info("TRANSACTION BEGIN connectionId: {}, transactionId: {}, name: {}, readOnly {}, isolationLevel: {}",
           connectionId, transactionId, transactionDefinition.getName(), transactionDefinition.getReadOnly(),

@@ -9,6 +9,6 @@ public class ConnectionCloseFailureEvent implements ConnectionEvent {
 
   private long executionTimeNs;
   private long connectionId;
-  private Long transactionId;
+  private SpyqlTransaction transaction;
   private Throwable throwable;
 }

@@ -10,10 +10,10 @@ public class StatementExecuteEvent implements ConnectionEvent {
   private long executionTimeNs;
   private long connectionId;
   private long affectedRowsCount;
-  private Long transactionId;
+  private SpyqlTransaction transaction;
   private String sql;
 
   public boolean isInTransaction() {
-    return transactionId != null;
+    return transaction != null;
   }
 }
