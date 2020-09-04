@@ -7,8 +7,11 @@ import lombok.experimental.Accessors;
 
 @Data
 @Accessors(chain = true)
-public class TransactionBeginEvent implements ConnectionEvent {
+public class SpyqlTransaction {
 
-  private SpyqlTransaction transaction;
-  private long connectionId;
+  private boolean empty;
+  private long id;
+  private SpyqlTransactionDefinition definition;
+  private Instant startTime;
+  private Instant endTime;
 }

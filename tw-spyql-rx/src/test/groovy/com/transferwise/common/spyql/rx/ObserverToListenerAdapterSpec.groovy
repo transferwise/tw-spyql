@@ -14,9 +14,10 @@ class ObserverToListenerAdapterSpec extends Specification {
 
             def observer = new ObserverToListenerAdapter(dataSourceListener, 100)
             def getConnectionEvent = new GetConnectionEvent().setConnectionId(1l)
-            def transactionBeginEvent = new TransactionBeginEvent().setConnectionId(1l).setTransactionId(1l)
-            def statementExecuteEvent = new StatementExecuteEvent().setConnectionId(1l).setTransactionId(1l)
-            def transactionCommitEvent = new TransactionCommitEvent().setConnectionId(1l).setTransactionId(1l)
+            def transaction = new SpyqlTransaction().setId(1l)
+            def transactionBeginEvent = new TransactionBeginEvent().setConnectionId(1l).setTransaction(transaction)
+            def statementExecuteEvent = new StatementExecuteEvent().setConnectionId(1l).setTransaction(transaction)
+            def transactionCommitEvent = new TransactionCommitEvent().setConnectionId(1l).setTransaction(transaction)
             def connectionCloseEvent = new ConnectionCloseEvent().setConnectionId(1l)
         when:
             observer.onNext(getConnectionEvent)

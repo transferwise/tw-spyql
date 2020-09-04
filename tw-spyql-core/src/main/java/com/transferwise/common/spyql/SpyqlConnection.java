@@ -3,6 +3,7 @@ package com.transferwise.common.spyql;
 import com.transferwise.common.spyql.event.ConnectionCloseEvent;
 import com.transferwise.common.spyql.event.ConnectionCloseFailureEvent;
 import com.transferwise.common.spyql.event.ResultSetNextRowsEvent;
+import com.transferwise.common.spyql.event.SpyqlTransaction;
 import com.transferwise.common.spyql.event.StatementExecuteEvent;
 import com.transferwise.common.spyql.event.StatementExecuteFailureEvent;
 import com.transferwise.common.spyql.event.TransactionBeginEvent;
@@ -26,6 +27,7 @@ import java.sql.SQLXML;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Struct;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -39,7 +41,7 @@ public class SpyqlConnection implements Connection {
   private Connection connection;
   private SpyqlDataSource spyqlDataSource;
   private long connectionId;
-  private Long transactionId;
+  private SpyqlTransaction transaction;
 
   public SpyqlConnection(SpyqlDataSource spyqlDataSource, Connection connection, List<SpyqlConnectionListener> connectionListeners,
       long connectionId) {
@@ -172,25 +174,26 @@ public class SpyqlConnection implements Connection {
   //// Helper methods ////
 
   protected boolean isInTransaction() {
-    return transactionId != null;
+    return transaction != null;
   }
 
   protected void onCommit(long timeTakenNs, Throwable t) {
     if (!isInTransaction()) {
       onTransactionBegin(true);
     }
+    transaction.setEndTime(Instant.now());
     if (t == null) {
       spyqlDataSource.onConnectionEvent(connectionListeners, new TransactionCommitEvent()
           .setExecutionTimeNs(timeTakenNs)
           .setConnectionId(connectionId)
-          .setTransactionId(transactionId));
-
-      transactionId = null;
+          .setTransaction(transaction)
+      );
+      transaction = null;
     } else {
       spyqlDataSource.onConnectionEvent(connectionListeners, new TransactionCommitFailureEvent()
           .setExecutionTimeNs(timeTakenNs)
           .setConnectionId(connectionId)
-          .setTransactionId(transactionId)
+          .setTransaction(transaction)
           .setThrowable(t));
     }
   }
@@ -199,46 +202,52 @@ public class SpyqlConnection implements Connection {
     if (!isInTransaction()) {
       onTransactionBegin(true);
     }
-
+    transaction.setEndTime(Instant.now());
     if (t == null) {
       spyqlDataSource.onConnectionEvent(connectionListeners, new TransactionRollbackEvent()
           .setConnectionId(connectionId)
-          .setTransactionId(transactionId)
+          .setTransaction(transaction)
           .setExecutionTimeNs(timeTakenNs));
-
-      transactionId = null;
+      transaction = null;
     } else {
       spyqlDataSource.onConnectionEvent(connectionListeners, new TransactionRollbackFailureEvent()
           .setConnectionId(connectionId)
-          .setTransactionId(transactionId)
+          .setTransaction(transaction)
           .setExecutionTimeNs(timeTakenNs)
           .setThrowable(t));
     }
   }
 
   protected void onClose(long timeTakenNs, Throwable t) {
+    if (isInTransaction()) {
+      transaction.setEndTime(Instant.now());
+    }
     if (t == null) {
       spyqlDataSource.onConnectionEvent(connectionListeners, new ConnectionCloseEvent()
           .setConnectionId(connectionId)
-          .setTransactionId(transactionId)
+          .setTransaction(transaction)
           .setExecutionTimeNs(timeTakenNs));
     } else {
       spyqlDataSource.onConnectionEvent(connectionListeners, new ConnectionCloseFailureEvent()
           .setExecutionTimeNs(timeTakenNs)
           .setConnectionId(connectionId)
-          .setTransactionId(transactionId)
+          .setTransaction(transaction)
           .setThrowable(t));
     }
   }
 
   protected void onTransactionBegin(boolean emptyTransaction) {
-    transactionId = spyqlDataSource.nextTransactionId();
+    SpyqlTransaction transaction = new SpyqlTransaction()
+        .setId(spyqlDataSource.nextTransactionId())
+        .setStartTime(Instant.now())
+        .setDefinition(spyqlDataSource.getTransactionDefinition())
+        .setEmpty(emptyTransaction);
+
+    this.transaction = transaction;
 
     spyqlDataSource.onConnectionEvent(connectionListeners, new TransactionBeginEvent()
         .setConnectionId(connectionId)
-        .setTransactionId(transactionId)
-        .setEmptyTransaction(emptyTransaction)
-        .setTransactionDefinition(spyqlDataSource.getTransactionDefinition()));
+        .setTransaction(transaction));
   }
 
   protected void onStatementExecute(long timeTakenNs, String sql, long affectedRowsCount, Throwable t) throws SQLException {
@@ -248,14 +257,14 @@ public class SpyqlConnection implements Connection {
       }
       spyqlDataSource.onConnectionEvent(connectionListeners, new StatementExecuteEvent()
           .setConnectionId(connectionId)
-          .setTransactionId(transactionId)
+          .setTransaction(transaction)
           .setExecutionTimeNs(timeTakenNs)
           .setAffectedRowsCount(affectedRowsCount)
           .setSql(sql));
     } else {
       spyqlDataSource.onConnectionEvent(connectionListeners, new StatementExecuteFailureEvent()
           .setConnectionId(connectionId)
-          .setTransactionId(transactionId)
+          .setTransaction(transaction)
           .setExecutionTimeNs(timeTakenNs)
           .setSql(sql)
           .setThrowable(t));
@@ -265,7 +274,7 @@ public class SpyqlConnection implements Connection {
   protected void onNextRecords(long recordsCount) {
     spyqlDataSource.onConnectionEvent(connectionListeners, new ResultSetNextRowsEvent()
         .setConnectionId(connectionId)
-        .setTransactionId(transactionId)
+        .setTransaction(transaction)
         .setRowsCount(recordsCount));
   }
 
@@ -455,4 +464,5 @@ public class SpyqlConnection implements Connection {
   public boolean isReadOnly() throws SQLException {
     return connection.isReadOnly();
   }
+
 }
