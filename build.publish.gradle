@@ -1,8 +1,5 @@
 apply plugin: 'maven-publish'
-/*
-   TODO: Needs additional Circle setup
-   apply plugin: 'signing'
-*/
+apply plugin: 'signing'
 
 ext.artifactoryUser = project.hasProperty("artifactoryUser") ? project.artifactoryUser : System.env.ARTIFACTORY_USER as String
 ext.artifactoryPassword = project.hasProperty("artifactoryPassword") ? project.artifactoryPassword : System.env.ARTIFACTORY_PASSWORD as String
@@ -30,7 +27,7 @@ publishing {
                 packaging = "jar"
                 licenses {
                     license {
-                        name = 'The Apache License, Version 2.0, Copyright 2019 TransferWise Ltd'
+                        name = 'The Apache License, Version 2.0, Copyright 2021 TransferWise Ltd'
                         url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }
@@ -60,12 +57,11 @@ publishing {
         }
     }
 
-/*
-    TODO: Needs additional Circle setup
-    signing {
-        sign publishing.publications.mavenJava
+    if (System.getenv("OPENSOURCE_PUBLISH") == "true") {
+        signing {
+            sign publishing.publications.mavenJava
+        }
     }
-*/
 
     javadoc {
         if (JavaVersion.current().isJava9Compatible()) {
@@ -74,21 +70,23 @@ publishing {
     }
 
     repositories {
-        maven {
-            url "https://arti.tw.ee/artifactory/libs-${project.version.endsWith('-SNAPSHOT') ? 'snapshot' : 'release'}-local"
-            credentials {
-                username = artifactoryUser
-                password = artifactoryPassword
+        if (System.getenv("OPENSOURCE_PUBLISH") == "true") {
+            maven {
+                url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
+                credentials {
+                    username sonatypeUsername
+                    password sonatypePassword
+                }
             }
         }
-        /*
-        TODO: Needs additional Circle setup
-        maven {
-            url "https://oss.sonatype.org/service/local/staging/deploy/maven2"
-            credentials {
-                username sonatypeUsername
-                password sonatypePassword
+        else{
+            maven {
+                url "https://arti.tw.ee/artifactory/libs-${project.version.endsWith('-SNAPSHOT') ? 'snapshot' : 'release'}-local"
+                credentials {
+                    username = artifactoryUser
+                    password = artifactoryPassword
+                }
             }
-        }*/
+        }
     }
 }

@@ -3,7 +3,7 @@ jobs:
   build:
     working_directory: ~/tw-spyql
     docker:
-      - image: circleci/openjdk:8-jdk
+      - image: arti.tw.ee/circle_openjdk11:latest
     steps:
       - checkout
       - restore_cache:
@@ -30,7 +30,7 @@ jobs:
   publish_artifacts:
     working_directory: ~/tw-spyql
     docker:
-      - image: circleci/openjdk:8-jdk
+      - image: arti.tw.ee/circle_openjdk11:latest
     steps:
       - attach_workspace:
           at: ~/tw-spyql
@@ -38,7 +38,7 @@ jobs:
           key: tw-spyql-lock-{{ checksum "build.gradle" }}-{{ checksum "gradle.properties" }}
       - run:
           name: Publish tw-spyql-core
-          command: ./.circleci/publishLibraryIfNeeded.sh tw-spyql-core 
+          command: ./.circleci/publishLibraryIfNeeded.sh tw-spyql-core
       - run:
           name: Publish tw-spyql-rx
           command: ./.circleci/publishLibraryIfNeeded.sh tw-spyql-rx
@@ -54,7 +54,7 @@ workflows:
     jobs:
       - build
       - publish_artifacts:
-          context: org-global
+          context: artifactory-deploy
           requires:
             - build
           filters:
