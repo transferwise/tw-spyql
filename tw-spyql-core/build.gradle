@@ -6,9 +6,10 @@ apply from: '../build.publish.gradle'
 dependencies {
     implementation "org.springframework:spring-tx"
     implementation "org.slf4j:slf4j-api"
-    implementation "com.transferwise.common:tw-context:0.6.0"
+    implementation "com.transferwise.common:tw-context:0.11.0"
 
     testImplementation 'org.springframework:spring-jdbc'
+    testImplementation 'javax.annotation:jsr250-api:1.0'
 }
 
 configurations {

@@ -8,12 +8,11 @@ group = 'com.transferwise.common'
 ext.projectName = 'Transferwise Database Connection Spy'
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
     withSourcesJar()
     withJavadocJar()
 }
-
 
 jar {
     manifest {
@@ -30,13 +29,11 @@ compileJava {
 }
 
 repositories {
-    maven {
-        setUrl("https://arti.tw.ee/artifactory/libs-release")
-    }
+    mavenCentral()
     mavenLocal()
 }
 
-ext.springBootVersion = "2.3.3.RELEASE"
+ext.springBootVersion = "2.3.11.RELEASE"
 
 dependencies {
     annotationProcessor platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
@@ -49,12 +46,12 @@ dependencies {
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
     compileOnly 'org.projectlombok:lombok'
-    compileOnly 'com.github.spotbugs:spotbugs-annotations:3.1.12'
+    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.2.3'
 
     testAnnotationProcessor 'org.projectlombok:lombok'
 
     testImplementation 'org.projectlombok:lombok'
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit'
     testImplementation 'com.h2database:h2'
     testImplementation "org.springframework:spring-context"
     testImplementation "org.springframework:spring-test"
