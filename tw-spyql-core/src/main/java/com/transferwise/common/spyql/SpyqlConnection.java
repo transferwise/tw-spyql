@@ -1,5 +1,6 @@
 package com.transferwise.common.spyql;
 
+import com.transferwise.common.baseutils.jdbc.ConnectionProxy;
 import com.transferwise.common.spyql.event.ConnectionCloseEvent;
 import com.transferwise.common.spyql.event.ConnectionCloseFailureEvent;
 import com.transferwise.common.spyql.event.ResultSetNextRowsEvent;
@@ -35,7 +36,7 @@ import java.util.concurrent.Executor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class SpyqlConnection implements Connection {
+public class SpyqlConnection implements ConnectionProxy {
 
   private List<SpyqlConnectionListener> connectionListeners;
   private Connection connection;
@@ -465,4 +466,8 @@ public class SpyqlConnection implements Connection {
     return connection.isReadOnly();
   }
 
+  @Override
+  public Connection getTargetConnection() {
+    return connection;
+  }
 }
