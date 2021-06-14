@@ -4,6 +4,7 @@ apply from: '../build.common.gradle'
 apply from: '../build.publish.gradle'
 
 dependencies {
+    implementation "com.transferwise.common:tw-base-utils:1.6.0"
     implementation "org.springframework:spring-tx"
     implementation "org.slf4j:slf4j-api"
     implementation "com.transferwise.common:tw-context:0.11.0"
