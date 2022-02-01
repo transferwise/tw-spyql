@@ -36,11 +36,11 @@ repositories {
 ext.springBootVersion = "2.5.8"
 
 dependencies {
-    annotationProcessor platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}!!")
-    testAnnotationProcessor platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}!!")
-    compileOnly platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}!!")
-    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}!!")
-    testImplementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}!!")
+    annotationProcessor platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    testAnnotationProcessor platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    compileOnly platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    testImplementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
 
     annotationProcessor 'org.projectlombok:lombok'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
