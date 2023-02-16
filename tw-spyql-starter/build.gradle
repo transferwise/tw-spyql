@@ -17,16 +17,3 @@ dependencies {
     testImplementation libraries.springBootStarterJdbc
     testImplementation libraries.springBootStarterTest
 }
-
-configurations {
-    testArchives.extendsFrom(testCompile)
-}
-
-task jarTest(type: Jar, dependsOn: project.testClasses) {
-    from project.sourceSets.test.output
-    archiveClassifier = 'test'
-}
-
-artifacts {
-    testArchives project.jarTest
-}

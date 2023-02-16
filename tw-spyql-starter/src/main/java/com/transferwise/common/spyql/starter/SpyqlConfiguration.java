@@ -9,7 +9,7 @@ public class SpyqlConfiguration {
 
   @Bean
   @ConditionalOnMissingBean
-  public SpyqlDataSourceBeanProcessor gafferJtaDataSourceBeanProcessor() {
+  public SpyqlDataSourceBeanProcessor spyqlDataSourceBeanProcessor() {
     return new SpyqlDataSourceBeanProcessor();
   }
 }

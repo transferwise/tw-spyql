@@ -40,7 +40,7 @@ jobs:
       - name: "Compile tests"
         uses: gradle/gradle-build-action@v2
         with:
-          arguments: compileTest --console=plain --info --stacktrace --parallel
+          arguments: compileTestGroovy compileTestJava --console=plain --info --stacktrace --parallel
       - name: "Run checks"
         uses: gradle/gradle-build-action@v2
         with:

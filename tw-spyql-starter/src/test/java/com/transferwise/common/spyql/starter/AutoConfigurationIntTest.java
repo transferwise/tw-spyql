@@ -18,8 +18,8 @@ class AutoConfigurationIntTest {
   @Test
   void testIfDataSourceIsCorrectlyWrapped() {
     var spyqlDataSource = (SpyqlDataSource) dataSource;
-    var hikariDataSource = spyqlDataSource.getTargetDataSource();
 
+    var hikariDataSource = spyqlDataSource.getTargetDataSource();
     assertNotNull(hikariDataSource);
   }
 }

@@ -1,14 +1,16 @@
 package com.transferwise.common.spyql.starter;
 
 import com.transferwise.common.baseutils.ExceptionUtils;
-import com.transferwise.common.baseutils.jdbc.ParentAwareDataSourceProxy;
+import com.transferwise.common.baseutils.jdbc.DataSourceProxyUtils;
 import com.transferwise.common.spyql.SpyqlDataSource;
 import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.core.Ordered;
 
+@Slf4j
 public class SpyqlDataSourceBeanProcessor implements BeanPostProcessor, Ordered {
 
   @Override
@@ -21,6 +23,8 @@ public class SpyqlDataSourceBeanProcessor implements BeanPostProcessor, Ordered 
       var dataSource = (DataSource) bean;
 
       if (dataSource.isWrapperFor(SpyqlDataSource.class)) {
+        // No need to add starter library, if it is already wrapped.
+        log.warn("Datasource '" + dataSource + "' is already wrapped with `SpyqlDataSource`.");
         return dataSource;
       }
 
@@ -36,9 +40,7 @@ public class SpyqlDataSourceBeanProcessor implements BeanPostProcessor, Ordered 
       }
 
       var spyqlDataSource = new SpyqlDataSource(dataSource, databaseName);
-      if (dataSource instanceof ParentAwareDataSourceProxy) {
-        ((ParentAwareDataSourceProxy) dataSource).setParentDataSource(spyqlDataSource);
-      }
+      DataSourceProxyUtils.tieTogether(spyqlDataSource, dataSource);
 
       return spyqlDataSource;
     });
