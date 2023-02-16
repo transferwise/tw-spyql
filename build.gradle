@@ -28,14 +28,3 @@ task tagRelease {
         }
     }
 }
-
-group = "com.transferwise.common"
-
-nexusPublishing {
-    repositories {
-        sonatype {
-            username = System.getenv("SONATYPE_USER")
-            password = System.getenv("SONATYPE_PASSWORD")
-        }
-    }
-}

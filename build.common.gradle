@@ -35,6 +35,8 @@ repositories {
     mavenLocal()
 }
 
+group = "com.transferwise.common"
+
 configurations {
     local {
         canBeResolved(false)
