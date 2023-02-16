@@ -1,6 +1,5 @@
 package com.transferwise.common.spyql;
 
-import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import org.h2.jdbcx.JdbcDataSource;
 import org.springframework.context.annotation.Bean;
@@ -9,11 +8,6 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 @Configuration
 class TestConfig {
-
-  @PostConstruct
-  void init() {
-    System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "DEBUG");
-  }
 
   @Bean
   DataSource dataSource() {

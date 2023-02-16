@@ -1,16 +1,18 @@
 ext.projectArtifactName = 'tw-spyql-core'
 
-apply from: '../build.common.gradle'
-apply from: '../build.publish.gradle'
+apply from: "$rootProject.rootDir/build.common.gradle"
+apply from: "$rootProject.rootDir/build.publish.gradle"
 
 dependencies {
-    implementation "com.transferwise.common:tw-base-utils:1.6.0"
-    implementation "org.springframework:spring-tx"
-    implementation "org.slf4j:slf4j-api"
-    implementation "com.transferwise.common:tw-context:0.11.0"
+    implementation libraries.slf4jApi
+    implementation libraries.springTx
+    implementation libraries.twBaseUtils
+    implementation libraries.twContext
 
-    testImplementation 'org.springframework:spring-jdbc'
-    testImplementation 'javax.annotation:jsr250-api:1.0'
+    testImplementation libraries.h2
+    testImplementation libraries.spockCore
+    testImplementation libraries.springBootStarterTest
+    testImplementation libraries.springJdbc
 }
 
 configurations {

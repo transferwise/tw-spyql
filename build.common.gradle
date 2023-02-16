@@ -7,6 +7,8 @@ group = 'com.transferwise.common'
 
 ext.projectName = 'Transferwise Database Connection Spy'
 
+apply from: "$project.rootDir/build.libraries.gradle"
+
 java {
     sourceCompatibility = JavaVersion.VERSION_11
     targetCompatibility = JavaVersion.VERSION_11
@@ -33,29 +35,36 @@ repositories {
     mavenLocal()
 }
 
-ext.springBootVersion = "2.5.8"
+configurations {
+    local {
+        canBeResolved(false)
+        canBeConsumed(false)
+    }
+    compileClasspath {
+        extendsFrom(local)
+    }
+    runtimeClasspath {
+        extendsFrom(local)
+    }
+    testCompileClasspath {
+        extendsFrom(local)
+    }
+    testRuntimeClasspath {
+        extendsFrom(local)
+    }
+    annotationProcessor {
+        extendsFrom(local)
+    }
+    testAnnotationProcessor {
+        extendsFrom(local)
+    }
+}
 
 dependencies {
-    annotationProcessor platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-    testAnnotationProcessor platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-    compileOnly platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-    implementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
-    testImplementation platform("org.springframework.boot:spring-boot-dependencies:${springBootVersion}")
+    local platform(libraries.springBootDependencies)
+    local libraries.lombok
 
-    annotationProcessor 'org.projectlombok:lombok'
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-
-    compileOnly 'org.projectlombok:lombok'
-    compileOnly 'com.github.spotbugs:spotbugs-annotations:4.5.2'
-
-    testAnnotationProcessor 'org.projectlombok:lombok'
-
-    testImplementation 'org.projectlombok:lombok'
-    testImplementation 'com.h2database:h2'
-    testImplementation "org.springframework:spring-context"
-    testImplementation "org.springframework.boot:spring-boot-starter-test"
-    testImplementation "org.spockframework:spock-core:2.0-groovy-3.0"
-    testImplementation 'org.slf4j:slf4j-simple'
+    compileOnly libraries.spotbugsAnnotations
 }
 
 test {

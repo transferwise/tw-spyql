@@ -1,0 +1,32 @@
+ext.projectArtifactName = 'tw-spyql-starter'
+
+apply from: "$project.rootDir/build.common.gradle"
+apply from: "$project.rootDir/build.publish.gradle"
+
+dependencies {
+    api project(":tw-spyql-core")
+
+    annotationProcessor libraries.springBootConfigurationProcessor
+    compileOnly libraries.springBootConfigurationProcessor
+
+    implementation libraries.hikariCp
+    implementation libraries.springBootStarter
+    implementation libraries.twBaseUtils
+
+    testImplementation libraries.h2
+    testImplementation libraries.springBootStarterJdbc
+    testImplementation libraries.springBootStarterTest
+}
+
+configurations {
+    testArchives.extendsFrom(testCompile)
+}
+
+task jarTest(type: Jar, dependsOn: project.testClasses) {
+    from project.sourceSets.test.output
+    archiveClassifier = 'test'
+}
+
+artifacts {
+    testArchives project.jarTest
+}

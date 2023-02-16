@@ -1,6 +1,7 @@
 package com.transferwise.common.spyql;
 
-import com.transferwise.common.baseutils.jdbc.ConnectionProxy;
+import com.transferwise.common.baseutils.jdbc.ConnectionProxyUtils;
+import com.transferwise.common.baseutils.jdbc.ParentAwareConnectionProxy;
 import com.transferwise.common.spyql.event.ConnectionCloseEvent;
 import com.transferwise.common.spyql.event.ConnectionCloseFailureEvent;
 import com.transferwise.common.spyql.event.ResultSetNextRowsEvent;
@@ -36,27 +37,31 @@ import java.util.concurrent.Executor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class SpyqlConnection implements ConnectionProxy {
+public class SpyqlConnection implements ParentAwareConnectionProxy {
 
   private List<SpyqlConnectionListener> connectionListeners;
-  private Connection connection;
+  private Connection targetConnection;
+  private Connection parentConnection;
+
   private SpyqlDataSource spyqlDataSource;
   private long connectionId;
   private SpyqlTransaction transaction;
 
-  public SpyqlConnection(SpyqlDataSource spyqlDataSource, Connection connection, List<SpyqlConnectionListener> connectionListeners,
+  public SpyqlConnection(SpyqlDataSource spyqlDataSource, Connection targetConnection, List<SpyqlConnectionListener> connectionListeners,
       long connectionId) {
-    this.connection = connection;
+    setTargetConnection(targetConnection);
     this.connectionListeners = connectionListeners;
     this.spyqlDataSource = spyqlDataSource;
     this.connectionId = connectionId;
+
+    ConnectionProxyUtils.tieTogether(this, targetConnection);
   }
 
   @Override
   public void close() throws SQLException {
     long startTimeNs = System.nanoTime();
     try {
-      connection.close();
+      targetConnection.close();
       onClose(System.nanoTime() - startTimeNs, null);
     } catch (Throwable t) {
       onClose(System.nanoTime() - startTimeNs, t);
@@ -66,13 +71,13 @@ public class SpyqlConnection implements ConnectionProxy {
 
   @Override
   public void setAutoCommit(boolean autoCommit) throws SQLException {
-    boolean implicitCommit = autoCommit && !connection.getAutoCommit() && isInTransaction();
+    boolean implicitCommit = autoCommit && !targetConnection.getAutoCommit() && isInTransaction();
     if (!implicitCommit) {
-      connection.setAutoCommit(autoCommit);
+      targetConnection.setAutoCommit(autoCommit);
     } else {
       long startTimeNs = System.nanoTime();
       try {
-        connection.setAutoCommit(autoCommit);
+        targetConnection.setAutoCommit(autoCommit);
         onCommit(System.nanoTime() - startTimeNs, null);
       } catch (Throwable t) {
         onCommit(System.nanoTime() - startTimeNs, t);
@@ -85,7 +90,7 @@ public class SpyqlConnection implements ConnectionProxy {
   public void rollback() throws SQLException {
     long startTimeNs = System.nanoTime();
     try {
-      connection.rollback();
+      targetConnection.rollback();
       onRollback(System.nanoTime() - startTimeNs, null);
 
     } catch (Throwable t) {
@@ -97,14 +102,14 @@ public class SpyqlConnection implements ConnectionProxy {
   // Not supported.
   @Override
   public void rollback(Savepoint savepoint) throws SQLException {
-    connection.rollback(savepoint);
+    targetConnection.rollback(savepoint);
   }
 
   @Override
   public void commit() throws SQLException {
     long startTimeNs = System.nanoTime();
     try {
-      connection.commit();
+      targetConnection.commit();
       onCommit(System.nanoTime() - startTimeNs, null);
     } catch (Throwable t) {
       onCommit(System.nanoTime() - startTimeNs, t);
@@ -114,62 +119,62 @@ public class SpyqlConnection implements ConnectionProxy {
 
   @Override
   public CallableStatement prepareCall(String sql) throws SQLException {
-    return new SpyqlCallableStatement(sql, connection.prepareCall(sql), this);
+    return new SpyqlCallableStatement(sql, targetConnection.prepareCall(sql), this);
   }
 
   @Override
   public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-    return new SpyqlCallableStatement(sql, connection.prepareCall(sql, resultSetType, resultSetConcurrency, resultSetHoldability), this);
+    return new SpyqlCallableStatement(sql, targetConnection.prepareCall(sql, resultSetType, resultSetConcurrency, resultSetHoldability), this);
   }
 
   @Override
   public CallableStatement prepareCall(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-    return new SpyqlCallableStatement(sql, connection.prepareCall(sql, resultSetType, resultSetConcurrency), this);
+    return new SpyqlCallableStatement(sql, targetConnection.prepareCall(sql, resultSetType, resultSetConcurrency), this);
   }
 
   @Override
   public Statement createStatement(int resultSetType, int resultSetConcurrency) throws SQLException {
-    return new SpyqlStatement(connection.createStatement(resultSetType, resultSetConcurrency), this);
+    return new SpyqlStatement(targetConnection.createStatement(resultSetType, resultSetConcurrency), this);
   }
 
   @Override
   public Statement createStatement(int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-    return new SpyqlStatement(connection.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability), this);
+    return new SpyqlStatement(targetConnection.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability), this);
   }
 
   @Override
   public Statement createStatement() throws SQLException {
-    return new SpyqlStatement(connection.createStatement(), this);
+    return new SpyqlStatement(targetConnection.createStatement(), this);
   }
 
   @Override
   public PreparedStatement prepareStatement(String sql, int[] columnIndexes) throws SQLException {
-    return new SpyqlPreparedStatement(sql, connection.prepareStatement(sql, columnIndexes), this);
+    return new SpyqlPreparedStatement(sql, targetConnection.prepareStatement(sql, columnIndexes), this);
   }
 
   @Override
   public PreparedStatement prepareStatement(String sql, String[] columnNames) throws SQLException {
-    return new SpyqlPreparedStatement(sql, connection.prepareStatement(sql, columnNames), this);
+    return new SpyqlPreparedStatement(sql, targetConnection.prepareStatement(sql, columnNames), this);
   }
 
   @Override
   public PreparedStatement prepareStatement(String sql) throws SQLException {
-    return new SpyqlPreparedStatement(sql, connection.prepareStatement(sql), this);
+    return new SpyqlPreparedStatement(sql, targetConnection.prepareStatement(sql), this);
   }
 
   @Override
   public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency) throws SQLException {
-    return new SpyqlPreparedStatement(sql, connection.prepareStatement(sql, resultSetType, resultSetConcurrency), this);
+    return new SpyqlPreparedStatement(sql, targetConnection.prepareStatement(sql, resultSetType, resultSetConcurrency), this);
   }
 
   @Override
   public PreparedStatement prepareStatement(String sql, int autoGeneratedKeys) throws SQLException {
-    return new SpyqlPreparedStatement(sql, connection.prepareStatement(sql, autoGeneratedKeys), this);
+    return new SpyqlPreparedStatement(sql, targetConnection.prepareStatement(sql, autoGeneratedKeys), this);
   }
 
   @Override
   public PreparedStatement prepareStatement(String sql, int resultSetType, int resultSetConcurrency, int resultSetHoldability) throws SQLException {
-    return new SpyqlPreparedStatement(sql, connection.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability), this);
+    return new SpyqlPreparedStatement(sql, targetConnection.prepareStatement(sql, resultSetType, resultSetConcurrency, resultSetHoldability), this);
   }
 
   //// Helper methods ////
@@ -253,7 +258,7 @@ public class SpyqlConnection implements ConnectionProxy {
 
   protected void onStatementExecute(long timeTakenNs, String sql, long affectedRowsCount, Throwable t) throws SQLException {
     if (t == null) {
-      if (!isInTransaction() && !connection.getAutoCommit()) {
+      if (!isInTransaction() && !targetConnection.getAutoCommit()) {
         onTransactionBegin(false);
       }
       spyqlDataSource.onConnectionEvent(connectionListeners, new StatementExecuteEvent()
@@ -282,192 +287,207 @@ public class SpyqlConnection implements ConnectionProxy {
   //// Default behaviour ////
   @Override
   public String getCatalog() throws SQLException {
-    return connection.getCatalog();
+    return targetConnection.getCatalog();
   }
 
   @Override
   public boolean getAutoCommit() throws SQLException {
-    return connection.getAutoCommit();
+    return targetConnection.getAutoCommit();
   }
 
   @Override
   public SQLXML createSQLXML() throws SQLException {
-    return connection.createSQLXML();
+    return targetConnection.createSQLXML();
   }
 
   @Override
   public void clearWarnings() throws SQLException {
-    connection.clearWarnings();
+    targetConnection.clearWarnings();
   }
 
   @Override
   public void setTransactionIsolation(int level) throws SQLException {
-    connection.setTransactionIsolation(level);
+    targetConnection.setTransactionIsolation(level);
   }
 
   @Override
   public void abort(Executor executor) throws SQLException {
-    connection.abort(executor);
+    targetConnection.abort(executor);
   }
 
   @Override
   public void setNetworkTimeout(Executor executor, int milliseconds) throws SQLException {
-    connection.setNetworkTimeout(executor, milliseconds);
+    targetConnection.setNetworkTimeout(executor, milliseconds);
   }
 
   @Override
   public Savepoint setSavepoint() throws SQLException {
-    return connection.setSavepoint();
+    return targetConnection.setSavepoint();
   }
 
   @Override
   public Savepoint setSavepoint(String name) throws SQLException {
-    return connection.setSavepoint(name);
+    return targetConnection.setSavepoint(name);
   }
 
   // Not supported.
   @Override
   public void releaseSavepoint(Savepoint savepoint) throws SQLException {
-    connection.releaseSavepoint(savepoint);
+    targetConnection.releaseSavepoint(savepoint);
   }
 
   @Override
   public void setClientInfo(Properties properties) throws SQLClientInfoException {
-    connection.setClientInfo(properties);
+    targetConnection.setClientInfo(properties);
   }
 
   @Override
   public void setClientInfo(String name, String value) throws SQLClientInfoException {
-    connection.setClientInfo(name, value);
+    targetConnection.setClientInfo(name, value);
   }
 
   @Override
   public boolean isWrapperFor(Class<?> iface) throws SQLException {
-    return connection.isWrapperFor(iface);
+    return targetConnection.isWrapperFor(iface);
   }
 
   @Override
   public Struct createStruct(String typeName, Object[] attributes) throws SQLException {
-    return connection.createStruct(typeName, attributes);
+    return targetConnection.createStruct(typeName, attributes);
   }
 
   @Override
   public void setReadOnly(boolean readOnly) throws SQLException {
-    connection.setReadOnly(readOnly);
+    targetConnection.setReadOnly(readOnly);
   }
 
   @Override
   public int getTransactionIsolation() throws SQLException {
-    return connection.getTransactionIsolation();
+    return targetConnection.getTransactionIsolation();
   }
 
   @Override
   public void setHoldability(int holdability) throws SQLException {
-    connection.setHoldability(holdability);
+    targetConnection.setHoldability(holdability);
   }
 
   @Override
   public NClob createNClob() throws SQLException {
-    return connection.createNClob();
+    return targetConnection.createNClob();
   }
 
   @Override
   public int getNetworkTimeout() throws SQLException {
-    return connection.getNetworkTimeout();
+    return targetConnection.getNetworkTimeout();
   }
 
   @Override
   public Array createArrayOf(String typeName, Object[] elements) throws SQLException {
-    return connection.createArrayOf(typeName, elements);
+    return targetConnection.createArrayOf(typeName, elements);
   }
 
   @Override
   public void setCatalog(String catalog) throws SQLException {
-    connection.setCatalog(catalog);
+    targetConnection.setCatalog(catalog);
   }
 
   @Override
   public Map<String, Class<?>> getTypeMap() throws SQLException {
-    return connection.getTypeMap();
+    return targetConnection.getTypeMap();
   }
 
   @Override
   public String nativeSQL(String sql) throws SQLException {
-    return connection.nativeSQL(sql);
+    return targetConnection.nativeSQL(sql);
   }
 
   @Override
   public int getHoldability() throws SQLException {
-    return connection.getHoldability();
+    return targetConnection.getHoldability();
   }
 
   @Override
   public Properties getClientInfo() throws SQLException {
-    return connection.getClientInfo();
+    return targetConnection.getClientInfo();
   }
 
   @Override
   public String getClientInfo(String name) throws SQLException {
-    return connection.getClientInfo(name);
+    return targetConnection.getClientInfo(name);
   }
 
   @Override
   public void setTypeMap(Map<String, Class<?>> map) throws SQLException {
-    connection.setTypeMap(map);
+    targetConnection.setTypeMap(map);
   }
 
   @Override
   public Blob createBlob() throws SQLException {
-    return connection.createBlob();
+    return targetConnection.createBlob();
   }
 
   @Override
   public <T> T unwrap(Class<T> iface) throws SQLException {
-    return connection.unwrap(iface);
+    return targetConnection.unwrap(iface);
   }
 
   @Override
   public boolean isClosed() throws SQLException {
-    return connection.isClosed();
+    return targetConnection.isClosed();
   }
 
   @Override
   public void setSchema(String schema) throws SQLException {
-    connection.setSchema(schema);
+    targetConnection.setSchema(schema);
   }
 
   @Override
   public SQLWarning getWarnings() throws SQLException {
-    return connection.getWarnings();
+    return targetConnection.getWarnings();
   }
 
   @Override
   public boolean isValid(int timeout) throws SQLException {
-    return connection.isValid(timeout);
+    return targetConnection.isValid(timeout);
   }
 
   @Override
   public String getSchema() throws SQLException {
-    return connection.getSchema();
+    return targetConnection.getSchema();
   }
 
   @Override
   public Clob createClob() throws SQLException {
-    return connection.createClob();
+    return targetConnection.createClob();
   }
 
   @Override
   public DatabaseMetaData getMetaData() throws SQLException {
-    return connection.getMetaData();
+    return targetConnection.getMetaData();
   }
 
   @Override
   public boolean isReadOnly() throws SQLException {
-    return connection.isReadOnly();
+    return targetConnection.isReadOnly();
   }
 
   @Override
   public Connection getTargetConnection() {
-    return connection;
+    return targetConnection;
+  }
+
+  @Override
+  public void setTargetConnection(Connection targetConnection) {
+    this.targetConnection = targetConnection;
+  }
+
+  @Override
+  public Connection getParentConnection() {
+    return parentConnection;
+  }
+
+  @Override
+  public void setParentConnection(Connection parentConnection) {
+    this.parentConnection = parentConnection;
   }
 }

@@ -1,5 +1,7 @@
 package com.transferwise.common.spyql;
 
+import com.transferwise.common.baseutils.jdbc.DataSourceProxyUtils;
+import com.transferwise.common.baseutils.jdbc.ParentAwareDataSourceProxy;
 import com.transferwise.common.spyql.event.ConnectionEvent;
 import com.transferwise.common.spyql.event.GetConnectionEvent;
 import com.transferwise.common.spyql.event.GetConnectionFailureEvent;
@@ -22,7 +24,7 @@ import javax.sql.DataSource;
 import lombok.Getter;
 import lombok.Setter;
 
-public class SpyqlDataSource implements DataSource {
+public class SpyqlDataSource implements ParentAwareDataSourceProxy {
 
   private static org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(SpyqlDataSource.class);
 
@@ -31,8 +33,8 @@ public class SpyqlDataSource implements DataSource {
   @Getter
   @Setter
   private String databaseName;
-  @Getter
-  private DataSource dataSource;
+  private DataSource targetDataSource;
+  private DataSource parentDataSource;
   private SimpleThrottler errorLogThrottler;
   private ConnectionListenersHelper connectionListenersHelper;
   @Setter
@@ -44,24 +46,26 @@ public class SpyqlDataSource implements DataSource {
   @Getter
   private List<SpyqlDataSourceListener> dataSourceListeners = new ArrayList<>();
 
-  public SpyqlDataSource(DataSource dataSource, String databaseName, SpyqlDataSourceListener dataSourceListener) {
-    this.dataSource = dataSource;
+  public SpyqlDataSource(DataSource targetDataSource, String databaseName, SpyqlDataSourceListener dataSourceListener) {
+    setTargetDataSource(targetDataSource);
     this.databaseName = databaseName;
     this.errorLogThrottler = new SimpleThrottler(Duration.ofMinutes(1), ERRORS_PER_MINUTE);
     connectionListenersHelper = new ConnectionListenersHelper(errorLogThrottler);
     addListener(dataSourceListener);
+
+    DataSourceProxyUtils.tieTogether(this, targetDataSource);
   }
 
-  public SpyqlDataSource(DataSource dataSource) {
-    this(dataSource, null, null);
+  public SpyqlDataSource(DataSource targetDataSource) {
+    this(targetDataSource, null, null);
   }
 
-  public SpyqlDataSource(DataSource dataSource, SpyqlDataSourceListener dataSourceListener) {
-    this(dataSource, null, dataSourceListener);
+  public SpyqlDataSource(DataSource targetDataSource, SpyqlDataSourceListener dataSourceListener) {
+    this(targetDataSource, null, dataSourceListener);
   }
 
-  public SpyqlDataSource(DataSource dataSource, String databaseName) {
-    this(dataSource, databaseName, null);
+  public SpyqlDataSource(DataSource targetDataSource, String databaseName) {
+    this(targetDataSource, databaseName, null);
   }
 
   public void addListener(SpyqlDataSourceListener dataSourceListener) {
@@ -72,12 +76,12 @@ public class SpyqlDataSource implements DataSource {
 
   @Override
   public Connection getConnection() throws SQLException {
-    return onGetConnection(() -> dataSource.getConnection());
+    return onGetConnection(() -> targetDataSource.getConnection());
   }
 
   @Override
   public Connection getConnection(String username, String password) throws SQLException {
-    return onGetConnection(() -> dataSource.getConnection(username, password));
+    return onGetConnection(() -> targetDataSource.getConnection(username, password));
   }
 
   //// Helper methods ////
@@ -157,22 +161,22 @@ public class SpyqlDataSource implements DataSource {
 
   @Override
   public PrintWriter getLogWriter() throws SQLException {
-    return dataSource.getLogWriter();
+    return targetDataSource.getLogWriter();
   }
 
   @Override
   public void setLogWriter(PrintWriter out) throws SQLException {
-    dataSource.setLogWriter(out);
+    targetDataSource.setLogWriter(out);
   }
 
   @Override
   public int getLoginTimeout() throws SQLException {
-    return dataSource.getLoginTimeout();
+    return targetDataSource.getLoginTimeout();
   }
 
   @Override
   public void setLoginTimeout(int seconds) throws SQLException {
-    dataSource.setLoginTimeout(seconds);
+    targetDataSource.setLoginTimeout(seconds);
   }
 
   @Override
@@ -181,12 +185,12 @@ public class SpyqlDataSource implements DataSource {
     if (iface.isInstance(this)) {
       return (T) this;
     }
-    return dataSource.unwrap(iface);
+    return targetDataSource.unwrap(iface);
   }
 
   @Override
   public boolean isWrapperFor(Class<?> iface) throws SQLException {
-    return (iface.isInstance(this) || dataSource.isWrapperFor(iface));
+    return (iface.isInstance(this) || targetDataSource.isWrapperFor(iface));
   }
 
   @Override
@@ -194,4 +198,23 @@ public class SpyqlDataSource implements DataSource {
     return Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
   }
 
+  @Override
+  public DataSource getParentDataSource() {
+    return parentDataSource;
+  }
+
+  @Override
+  public void setParentDataSource(DataSource parentDataSource) {
+    this.parentDataSource = parentDataSource;
+  }
+
+  @Override
+  public void setTargetDataSource(DataSource targetDataSource) {
+    this.targetDataSource = targetDataSource;
+  }
+
+  @Override
+  public DataSource getTargetDataSource() {
+    return targetDataSource;
+  }
 }
