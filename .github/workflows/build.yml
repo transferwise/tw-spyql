@@ -23,6 +23,7 @@ jobs:
           - 2.5.14
     env:
       SPRING_BOOT_VERSION: ${{ matrix.spring_boot_version }}
+      JAVA_VERSION: "11,17"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -33,6 +34,11 @@ jobs:
           gradle-home-cache-cleanup: true
           # Comment out when you are upgrading gradle in a branch and doing tons of commits you would need to test.
           # cache-read-only: false
+      - name: "Setup Java"
+        uses: actions/setup-java@v3
+        with:
+          distribution: zulu
+          java-version: $JAVA_VERSION
       - name: "Assemble jar"
         uses: gradle/gradle-build-action@v2
         with:
