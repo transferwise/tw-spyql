@@ -7,9 +7,12 @@
  * in the user guide at https://docs.gradle.org/4.6/userguide/multi_project_builds.html
  */
 
+plugins {
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '0.4.0'
+}
+
 rootProject.name = 'tw-spyql'
 
 include 'tw-spyql-core'
 include 'tw-spyql-simple-logger'
 include 'tw-spyql-starter'
-
