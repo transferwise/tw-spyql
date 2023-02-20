@@ -38,9 +38,9 @@ jobs:
         uses: actions/setup-java@v3
         with:
           distribution: zulu
-          java-version:
-            - "11"
-            - "17"
+          java-version: |
+            "11"
+            "17"
       - name: "Assemble jar"
         uses: gradle/gradle-build-action@v2
         with:
