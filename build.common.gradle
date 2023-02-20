@@ -28,7 +28,28 @@ jar {
 compileJava {
     options.encoding = 'utf-8'
     options.compilerArgs << '-parameters'
+    options.compilerArgs << '-Xlint'
+    options.compilerArgs << '-Xlint:-processing'
+
+    options.fork = true
+    options.forkOptions.jvmArgs << '-Xmx256m'
+
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
 }
+
+compileTestJava {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+
+    options.fork = true
+    options.forkOptions.jvmArgs << '-Xmx256m'
+}
+
 
 repositories {
     mavenCentral()
@@ -70,6 +91,9 @@ dependencies {
 }
 
 test {
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
     useJUnitPlatform()
     testLogging {
         events "passed", "skipped", "failed", "standardError"
