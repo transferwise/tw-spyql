@@ -1,4 +1,5 @@
 # com.transferwise.common.spyql
+
 ![Apache 2](https://img.shields.io/hexpm/l/plug.svg)
 ![Java 11](https://img.shields.io/badge/Java-11-blue.svg)
 ![Maven Central](https://badgen.net/maven/v/maven-central/com.transferwise.common/tw-spyql-core)
@@ -8,11 +9,12 @@
 
 A professional spy for your JDBC data source
 
-The project consists of the following components:
-- spyql-core
-- spyql-rx
+In a Spring Boot Service, it is recommended to just add
+
+`com.transferwise.common:tw-spyql-starter` dependency and it will automatically wrap your data sources, exposed as beans, with `SpyqlDataSource`.
 
 ## License
+
 Copyright 2021 TransferWise Ltd.
 
 Licensed under the Apache License, Version 2.0 (the "License");

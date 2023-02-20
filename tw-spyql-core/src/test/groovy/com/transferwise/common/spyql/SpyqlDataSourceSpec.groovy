@@ -41,25 +41,25 @@ class SpyqlDataSourceSpec extends Specification {
             def dataSource = new SpyqlDataSource(originalDataSource)
         then:
             dataSource.getDatabaseName() == null
-            dataSource.dataSource == originalDataSource
+            dataSource.targetDataSource == originalDataSource
             dataSource.getDataSourceListeners().isEmpty()
         when:
             dataSource = new SpyqlDataSource(originalDataSource, "SuperDb")
         then:
             dataSource.getDatabaseName() == "SuperDb"
-            dataSource.dataSource == originalDataSource
+            dataSource.targetDataSource == originalDataSource
             dataSource.getDataSourceListeners().isEmpty()
         when:
             dataSource = new SpyqlDataSource(originalDataSource, "SuperDb", dataSourceListener)
         then:
             dataSource.getDatabaseName() == "SuperDb"
-            dataSource.dataSource == originalDataSource
+            dataSource.targetDataSource == originalDataSource
             dataSource.getDataSourceListeners()[0] == dataSourceListener
         when:
             dataSource = new SpyqlDataSource(originalDataSource, dataSourceListener)
         then:
             dataSource.getDatabaseName() == null
-            dataSource.dataSource == originalDataSource
+            dataSource.targetDataSource == originalDataSource
             dataSource.getDataSourceListeners()[0] == dataSourceListener
     }
 

@@ -11,6 +11,5 @@ rootProject.name = 'tw-spyql'
 
 include 'tw-spyql-core'
 include 'tw-spyql-simple-logger'
-include 'tw-spyql-test'
-include 'tw-spyql-rx'
+include 'tw-spyql-starter'
 
