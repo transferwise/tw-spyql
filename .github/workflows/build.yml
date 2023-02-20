@@ -23,7 +23,7 @@ jobs:
           - 2.5.14
     env:
       SPRING_BOOT_VERSION: ${{ matrix.spring_boot_version }}
-      JAVA_VERSION: "11 17"
+      JAVA_VERSION: "11\n17"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
