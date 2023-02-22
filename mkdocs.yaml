@@ -1,0 +1,5 @@
+site_name: Tw-Spyql Documentation
+repo_url: https://github.com/transferwise/tw-spyql
+edit_uri: blob/master/docs/
+nav:
+  - Overview and usage: index.md

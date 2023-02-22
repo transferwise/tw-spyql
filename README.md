@@ -1,4 +1,4 @@
-# com.transferwise.common.spyql
+# Tw-Spyql library
 
 ![Apache 2](https://img.shields.io/hexpm/l/plug.svg)
 ![Java 11](https://img.shields.io/badge/Java-11-blue.svg)
@@ -7,11 +7,9 @@
 > Use the `@application-engineering-on-call` handle on Slack for help.
 ---
 
-A professional spy for your JDBC data source
+A professional spy for your JDBC data source. It's a `javax.sql.DataSource` wrapper, which provides multiple event hooks.
 
-In a Spring Boot Service, it is recommended to just add
-
-`com.transferwise.common:tw-spyql-starter` dependency and it will automatically wrap your data sources, exposed as beans, with `SpyqlDataSource`.
+Reference the [documentation](docs/index.md) of the library for more information about adoption and features.
 
 ## License
 
