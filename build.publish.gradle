@@ -53,6 +53,11 @@ publishing {
                     developerConnection = "scm:git:ssh://github.com:transferwise/${projectGitHubRepoName}.git"
                     url = "https://github.com/transferwise/${projectGitHubRepoName}"
                 }
+                withXml {
+                    if (!asNode().dependencyManagement.isEmpty()){
+                        throw new IllegalStateException("There should not be any `dependencyManagement` block in POM.")
+                    }
+                }
             }
         }
     }

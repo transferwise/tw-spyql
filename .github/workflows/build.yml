@@ -18,18 +18,22 @@ jobs:
       max-parallel: 100
       matrix:
         spring_boot_version:
-          - 2.7.8
+          - 3.0.6
+          - 2.7.11
           - 2.6.14
-          - 2.5.14
     env:
       SPRING_BOOT_VERSION: ${{ matrix.spring_boot_version }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'zulu'
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: "8.0"
           gradle-home-cache-cleanup: true
           # Comment out when you are upgrading gradle in a branch and doing tons of commits you would need to test.
           # cache-read-only: false
@@ -102,7 +106,6 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: "8.0"
           gradle-home-cache-cleanup: true
           # Comment out when you are upgrading gradle in a branch and doing tons of commits you would need to test.
           # cache-read-only: false
