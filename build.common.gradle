@@ -10,8 +10,13 @@ ext.projectName = 'Transferwise Database Connection Spy'
 apply from: "$project.rootDir/build.libraries.gradle"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_11
-    targetCompatibility = JavaVersion.VERSION_11
+    if (springBootVersion.startsWith("3.")) {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    } else {
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
+    }
     withSourcesJar()
     withJavadocJar()
 }
@@ -35,7 +40,11 @@ compileJava {
     options.forkOptions.jvmArgs << '-Xmx256m'
 
     javaCompiler = javaToolchains.compilerFor {
-        languageVersion = JavaLanguageVersion.of(11)
+        if (springBootVersion.startsWith("3.")) {
+            languageVersion = JavaLanguageVersion.of(17)
+        } else {
+            languageVersion = JavaLanguageVersion.of(11)
+        }
     }
 }
 
@@ -83,7 +92,11 @@ configurations {
 
 dependencies {
     local platform(libraries.springBootDependencies)
-    local libraries.lombok
+
+    compileOnly libraries.lombok
+    annotationProcessor libraries.lombok
+    testCompileOnly libraries.lombok
+    testAnnotationProcessor libraries.lombok
 
     compileOnly libraries.spotbugsAnnotations
 }
@@ -108,7 +121,7 @@ spotbugsMain {
     }
 }
 
-spotbugs{
+spotbugs {
     effort = "max"
     spotbugsTest.enabled = false
 }
