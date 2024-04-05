@@ -9,7 +9,7 @@ public class SpyqlAutoConfiguration {
 
   @Bean
   @ConditionalOnMissingBean
-  public SpyqlDataSourceBeanProcessor spyqlDataSourceBeanProcessor() {
+  public static SpyqlDataSourceBeanProcessor spyqlDataSourceBeanProcessor() {
     return new SpyqlDataSourceBeanProcessor();
   }
 }
