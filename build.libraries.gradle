@@ -1,13 +1,13 @@
 ext {
-    springBootVersion = System.getenv("SPRING_BOOT_VERSION") ?: "2.6.15"
+    springBootVersion = System.getenv("SPRING_BOOT_VERSION") ?: "3.2.2"
 
     libraries = [
             // explicit versions
             spockCore                       : "org.spockframework:spock-core:2.3-groovy-4.0",
             spotbugsAnnotations             : "com.github.spotbugs:spotbugs-annotations:${spotbugs.toolVersion.get()}",
             springBootDependencies          : "org.springframework.boot:spring-boot-dependencies:${springBootVersion}",
-            twBaseUtils                     : "com.transferwise.common:tw-base-utils:1.12.3",
-            twContext                       : "com.transferwise.common:tw-context:1.0.1",
+            twBaseUtils                     : "com.transferwise.common:tw-base-utils:1.12.4",
+            twContext                       : "com.transferwise.common:tw-context:2.0.0",
 
 
             // versions managed by spring-boot-dependencies platform
