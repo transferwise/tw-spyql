@@ -97,6 +97,7 @@ dependencies {
     annotationProcessor libraries.lombok
     testCompileOnly libraries.lombok
     testAnnotationProcessor libraries.lombok
+    testRuntimeOnly libraries.junitPlatformLauncher
 
     compileOnly libraries.spotbugsAnnotations
 }
